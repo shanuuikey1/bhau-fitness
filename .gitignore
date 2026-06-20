@@ -1,0 +1,27 @@
+# ── Secrets (NEVER commit) ───────────────────────────────────────────────
+# Holds the local SQL Server connection string and the Gmail SMTP app password.
+# Production reads these from environment variables instead.
+**/appsettings.Development.json
+*.env
+.env
+
+# ── .NET / ASP.NET backend ───────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+
+# ── Flutter / Dart frontend ──────────────────────────────────────────────
+**/.dart_tool/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/generated_plugin_registrant.*
+
+# ── Editor / OS noise ────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

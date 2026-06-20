@@ -1,0 +1,6 @@
+bin/
+obj/
+.vs/
+*.user
+# Never ship local dev secrets (SMTP app password, local connection string).
+appsettings.Development.json
