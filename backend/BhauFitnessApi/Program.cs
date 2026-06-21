@@ -94,13 +94,24 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 // ── CORS — Flutter (mobile/emulator/web) needs to call this from a different origin ──
+// ALLOWED_ORIGINS is a comma-separated list of allowed web origins (set on the host,
+// e.g. Render). Mobile/emulator builds don't send an Origin header so they're unaffected
+// either way. With no value set, falls back to allow-any (local dev convenience).
+var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFlutterClient", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-        // NOTE: AllowAnyOrigin is fine for local development. Before shipping this
-        // for real, lock it to your actual app's origin(s) instead.
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        }
+        else
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
     });
 });
 
