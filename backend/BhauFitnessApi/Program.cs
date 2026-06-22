@@ -187,6 +187,20 @@ app.MapGet("/api/health", () => new { status = "ok", timestamp = DateTime.UtcNow
     .WithName("Health")
     .AllowAnonymous();
 
+// Temporary bootstrap endpoint to promote first admin (remove after use)
+app.MapPost("/api/bootstrap/promote-admin", async (string email, UserManager<ApplicationUser> userManager) =>
+{
+    var user = await userManager.FindByEmailAsync(email);
+    if (user == null) return Results.NotFound();
+    if (!await userManager.IsInRoleAsync(user, "Admin"))
+    {
+        await userManager.AddToRoleAsync(user, "Admin");
+    }
+    return Results.Ok();
+})
+.AllowAnonymous()
+.WithName("PromoteFirstAdmin");
+
 app.MapControllers();
 
 app.Run();
