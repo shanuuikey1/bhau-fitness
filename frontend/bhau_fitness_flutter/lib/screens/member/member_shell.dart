@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/responsive.dart';
 import '../admin/admin_shell.dart';
 import '../landing/landing_screen.dart';
 import '../profile_screen.dart';
@@ -47,25 +48,57 @@ class _MemberShellState extends State<MemberShell> {
     // shell-level AppBar would double up — skip it on that tab.
     final showShellAppBar = _index != 3;
     final isAdmin = context.watch<AuthProvider>().profile?.isAdmin ?? false;
+    final isDesktop = Breakpoints.isDesktop(context);
+
+    final appBar = showShellAppBar
+        ? AppBar(
+            title: Text(_titles[_index]),
+            automaticallyImplyLeading: !isDesktop,
+            actions: [
+              if (isAdmin)
+                IconButton(
+                  tooltip: 'Admin Panel',
+                  icon: const Icon(Icons.shield_outlined, color: BhauColors.lime),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminShell()),
+                  ),
+                ),
+              IconButton(icon: const Icon(Icons.logout), onPressed: _signOut),
+            ],
+          )
+        : null;
+
+    final body = IndexedStack(index: _index, children: _tabs);
+
+    if (isDesktop) {
+      return Scaffold(
+        appBar: appBar,
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            NavigationRail(
+              selectedIndex: _index,
+              onDestinationSelected: (i) => setState(() => _index = i),
+              backgroundColor: BhauColors.bg1,
+              labelType: NavigationRailLabelType.all,
+              indicatorColor: BhauColors.cyan.withValues(alpha: 0.15),
+              destinations: const [
+                NavigationRailDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard, color: BhauColors.cyan), label: Text('Dashboard')),
+                NavigationRailDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_today, color: BhauColors.cyan), label: Text('Schedule')),
+                NavigationRailDestination(icon: Icon(Icons.emoji_events_outlined), selectedIcon: Icon(Icons.emoji_events, color: BhauColors.cyan), label: Text('Engage')),
+                NavigationRailDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: BhauColors.cyan), label: Text('Profile')),
+              ],
+            ),
+            const VerticalDivider(width: 1, color: BhauColors.line),
+            Expanded(child: ContentMaxWidth(maxWidth: 900, child: body)),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
-      appBar: showShellAppBar
-          ? AppBar(
-              title: Text(_titles[_index]),
-              actions: [
-                if (isAdmin)
-                  IconButton(
-                    tooltip: 'Admin Panel',
-                    icon: const Icon(Icons.shield_outlined, color: BhauColors.lime),
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AdminShell()),
-                    ),
-                  ),
-                IconButton(icon: const Icon(Icons.logout), onPressed: _signOut),
-              ],
-            )
-          : null,
-      body: IndexedStack(index: _index, children: _tabs),
+      appBar: appBar,
+      body: body,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

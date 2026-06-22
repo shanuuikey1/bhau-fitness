@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
 
@@ -53,6 +54,16 @@ class ReferPane extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _shareOnWhatsApp(code),
+                  style: ElevatedButton.styleFrom(backgroundColor: BhauColors.lime),
+                  icon: const Icon(Icons.share, size: 18),
+                  label: const Text('Share on WhatsApp'),
+                ),
+              ),
             ],
           ),
         ),
@@ -66,6 +77,14 @@ class ReferPane extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  // Same as the HTML's shareReferral() — opens WhatsApp's share intent with
+  // a pre-filled "join me at BHAU FITNESS" message containing the code.
+  Future<void> _shareOnWhatsApp(String code) async {
+    final text = 'Join me at BHAU FITNESS 💪 Use my code $code — we both get 2 weeks free!';
+    final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(text)}');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Widget _tier(String n, String unit, String reward) {

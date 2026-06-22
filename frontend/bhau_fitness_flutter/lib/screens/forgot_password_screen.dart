@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/responsive.dart';
 
 /// Two-step password reset mirroring the HTML's reset + new-password forms:
 /// step 1 requests a code by email, step 2 takes the code + a new password.
@@ -90,7 +91,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: ContentMaxWidth(
+            maxWidth: 480,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 8),
@@ -146,6 +149,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: const Text('Resend code'),
                 ),
             ],
+          ),
           ),
         ),
       ),

@@ -33,12 +33,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool remember = true}) async {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
     try {
-      profile = await _authService.login(email: email, password: password);
+      profile = await _authService.login(email: email, password: password, remember: remember);
       status = AuthStatus.authenticated;
       return true;
     } on ApiException catch (e) {

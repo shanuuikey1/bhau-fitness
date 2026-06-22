@@ -26,12 +26,12 @@ class AuthService {
     return Member.fromJson(res['profile'] as Map<String, dynamic>);
   }
 
-  Future<Member> login({required String email, required String password}) async {
+  Future<Member> login({required String email, required String password, bool remember = true}) async {
     final res = await _api.post('/auth/login', {
       'email': email,
       'password': password,
     });
-    await _tokenStorage.saveToken(res['token'] as String);
+    await _tokenStorage.saveToken(res['token'] as String, persist: remember);
     return Member.fromJson(res['profile'] as Map<String, dynamic>);
   }
 

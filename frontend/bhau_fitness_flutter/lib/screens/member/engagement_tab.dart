@@ -36,7 +36,7 @@ class _EngagementTabState extends State<EngagementTab> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final points = context.watch<EngagementProvider>().points;
+    final points = context.watch<EngagementProvider>().score;
 
     return Column(
       children: [

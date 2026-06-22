@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
+import '../../../theme/widgets.dart';
+import 'section_scaffold.dart';
 
 class HeroSection extends StatelessWidget {
   final VoidCallback onJoin;
@@ -8,9 +11,64 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 90, 24, 50),
-      child: Column(
+    final isDesktop = Breakpoints.isDesktop(context);
+    final content = _HeroText(onJoin: onJoin, onExplore: onExplore, isDesktop: isDesktop);
+
+    // Full-bleed background photo behind the whole hero, same as the HTML's
+    // `.hero-video-wrap` (a gym photo with a dark gradient overlay for text
+    // legibility) — on every screen size, not just desktop.
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/landing_hero.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  BhauColors.bg.withValues(alpha: 0.55),
+                  BhauColors.bg.withValues(alpha: 0.88),
+                  BhauColors.bg,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(24, isDesktop ? 70 : 90, 24, 50),
+          child: ContentMaxWidth(
+            child: isDesktop
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(flex: 6, child: content),
+                      const Spacer(flex: 1),
+                    ],
+                  )
+                : content,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroText extends StatelessWidget {
+  const _HeroText({required this.onJoin, required this.onExplore, required this.isDesktop});
+
+  final VoidCallback onJoin;
+  final VoidCallback onExplore;
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -48,57 +106,70 @@ class HeroSection extends StatelessWidget {
           Wrap(
             spacing: 14, runSpacing: 14,
             children: [
-              ElevatedButton(
-                onPressed: onJoin,
-                style: ElevatedButton.styleFrom(backgroundColor: BhauColors.lime),
-                child: const Text('Start Your Transformation'),
+              SizedBox(
+                width: 240,
+                child: GradientButton(
+                  onPressed: onJoin,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Start Your Transformation'),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 16, color: BhauColors.bg),
+                    ],
+                  ),
+                ),
               ),
               OutlinedButton(
                 onPressed: onExplore,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: BhauColors.ink,
-                  side: const BorderSide(color: BhauColors.line2),
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Explore Programs'),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 16),
+                  ],
                 ),
-                child: const Text('Explore Programs'),
               ),
             ],
           ),
           const SizedBox(height: 44),
-          Row(
+          Wrap(
+            spacing: 14,
+            runSpacing: 14,
             children: [
-              _hstat('500+', 'MEMBERS'),
-              const SizedBox(width: 36),
-              _hstat('15+', 'YEARS'),
-              const SizedBox(width: 36),
-              _hstat('4.9', 'RATING', icon: Icons.star),
+              _hstatCard(Icons.groups_outlined, '5000+', 'ACTIVE MEMBERS'),
+              _hstatCard(Icons.calendar_today_outlined, '40+', 'WEEKLY CLASSES'),
+              _hstatCard(Icons.star_outline, '15+', 'YEARS STRONG'),
+              _hstatCard(Icons.monitor_heart_outlined, '12', 'EXPERT TRAINERS'),
             ],
           ),
+        ],
+    );
+  }
+
+  Widget _hstatCard(IconData icon, String n, String l) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: BhauColors.bg2.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: BhauColors.line2),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: BhauColors.lime, size: 22),
+          const SizedBox(height: 8),
+          Text(n, style: BhauText.display(fontSize: 24)),
+          const SizedBox(height: 2),
+          Text(l, style: BhauText.mono(fontSize: 9.5, color: BhauColors.faint), textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  Widget _hstat(String n, String l, {IconData? icon}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(n, style: BhauText.display(fontSize: 28)),
-            // Anton (the display font) has no glyph for "★" — using a
-            // Material icon here instead of the unicode character avoids
-            // the missing-glyph "tofu" box some browsers render for it.
-            if (icon != null) Icon(icon, size: 20, color: BhauColors.ink),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(l, style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
-      ],
-    );
-  }
 }
 
 class TickerBand extends StatefulWidget {
@@ -186,20 +257,22 @@ class StatsBand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const stats = [
-      ['92%', 'Member Retention'],
-      ['24/7', 'Elite Access'],
-      ['40+', 'Equipment Stations'],
-      ['15+', 'Years Coaching'],
+      ['98%', 'Member Retention'],
+      ['24/7', 'Gym Access'],
+      ['100+', 'Equipment Stations'],
+      ['1:1', 'Personal Coaching'],
     ];
+    final isTablet = Breakpoints.isTablet(context);
     return Container(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: BhauColors.line)),
       ),
-      child: GridView.count(
-        crossAxisCount: 2,
+      child: ContentMaxWidth(
+        child: GridView.count(
+        crossAxisCount: isTablet ? 4 : 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 1.6,
+        childAspectRatio: isTablet ? 1.9 : 1.6,
         children: stats
             .map((s) => Container(
                   decoration: BoxDecoration(border: Border.all(color: BhauColors.line, width: 0.5)),
@@ -214,6 +287,7 @@ class StatsBand extends StatelessWidget {
                   ),
                 ))
             .toList(),
+        ),
       ),
     );
   }

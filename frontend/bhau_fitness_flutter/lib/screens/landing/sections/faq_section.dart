@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -19,15 +20,17 @@ class _FaqSectionState extends State<FaqSection> {
       child: Column(
         children: [
           const SectionHeader(eyebrow: 'FAQ', title: 'GOT QUESTIONS?'),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: faqs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) {
-              final f = faqs[i];
-              final isOpen = _open == i;
-              return Container(
+          ResponsiveGrid(
+            tabletColumns: 2,
+            desktopColumns: 2,
+            spacing: 14,
+            runSpacing: 10,
+            children: [
+              for (var i = 0; i < faqs.length; i++)
+                Builder(builder: (context) {
+                  final f = faqs[i];
+                  final isOpen = _open == i;
+                  return Container(
                 decoration: BhauDecor.card(radius: 14),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -63,8 +66,9 @@ class _FaqSectionState extends State<FaqSection> {
                     ),
                   ],
                 ),
-              );
-            },
+                  );
+                }),
+            ],
           ),
         ],
       ),

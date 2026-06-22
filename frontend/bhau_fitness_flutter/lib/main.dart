@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -5,6 +6,18 @@ import 'providers/engagement_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/landing/landing_screen.dart';
 import 'screens/member/member_shell.dart';
+
+/// Enables scrolling by mouse drag and trackpad in addition to the default
+/// wheel/touch, so desktop-web visitors can always scroll the page.
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,20 +38,13 @@ class BhauFitnessApp extends StatelessWidget {
         title: 'BHAU FITNESS',
         debugShowCheckedModeBanner: false,
         theme: buildBhauTheme(),
+        scrollBehavior: _AppScrollBehavior(),
         home: const SplashGate(),
-        // Every screen here was laid out phone-width-first. On an actual phone
-        // this builder is a no-op (the constraint is wider than the screen).
-        // On a wide desktop/web window it keeps the app at a phone-like width
-        // instead of stretching every section to fill the browser.
-        builder: (context, child) => ColoredBox(
-          color: BhauColors.bg,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: child,
-            ),
-          ),
-        ),
+        // NOTE: width-capping is done per-screen via ContentMaxWidth (each
+        // landing section, and the member/admin shells, center their own
+        // content). We deliberately do NOT wrap the whole app in a
+        // Center/ConstrainedBox here — doing so gave the root its content
+        // loose constraints, which broke mouse-wheel scrolling on web.
       ),
     );
   }

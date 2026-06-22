@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/booking.dart';
 import '../../models/class_session.dart';
 import '../../services/portal_service.dart';
@@ -17,11 +18,34 @@ class _ScheduleTabState extends State<ScheduleTab> {
   List<Booking> _myBookings = [];
   bool _loading = true;
   int? _actingClassId;
+  Set<int> _waitlisted = {};
 
   @override
   void initState() {
     super.initState();
     _load();
+    _loadWaitlist();
+  }
+
+  Future<void> _loadWaitlist() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() => _waitlisted = (prefs.getStringList('bhau_waitlist') ?? []).map(int.parse).toSet());
+    }
+  }
+
+  // Same local-only concept as the HTML's `joinWaitlist()` — there's no
+  // backend table for this, it just remembers interest on this device.
+  Future<void> _toggleWaitlist(int classId) async {
+    setState(() {
+      if (_waitlisted.contains(classId)) {
+        _waitlisted.remove(classId);
+      } else {
+        _waitlisted.add(classId);
+      }
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('bhau_waitlist', _waitlisted.map((i) => i.toString()).toList());
   }
 
   Future<void> _load() async {
@@ -164,11 +188,20 @@ class _ScheduleTabState extends State<ScheduleTab> {
                                   ),
                                   child: const Text('Cancel'),
                                 )
-                              : ElevatedButton(
-                                  onPressed: isFull ? null : () => _book(c, date),
-                                  style: ElevatedButton.styleFrom(backgroundColor: BhauColors.cyan),
-                                  child: Text(isFull ? 'Full' : 'Book'),
-                                ),
+                              : isFull
+                                  ? OutlinedButton(
+                                      onPressed: () => _toggleWaitlist(c.id),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: _waitlisted.contains(c.id) ? BhauColors.lime : BhauColors.faint,
+                                        side: BorderSide(color: _waitlisted.contains(c.id) ? BhauColors.lime : BhauColors.line2),
+                                      ),
+                                      child: Text(_waitlisted.contains(c.id) ? 'On Waitlist ✓' : 'Join Waitlist'),
+                                    )
+                                  : ElevatedButton(
+                                      onPressed: () => _book(c, date),
+                                      style: ElevatedButton.styleFrom(backgroundColor: BhauColors.cyan),
+                                      child: const Text('Book'),
+                                    ),
                     ],
                   ),
                 );

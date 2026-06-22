@@ -11,15 +11,23 @@ import '../../services/auth_service.dart';
 import '../../services/portal_service.dart';
 import '../../theme/app_theme.dart';
 
-/// Common exercise names for the workout-log autocomplete (HTML's exercise
-/// suggestion list).
-const _commonExercises = [
-  'Bench Press', 'Squat', 'Deadlift', 'Overhead Press', 'Barbell Row',
-  'Pull-up', 'Chin-up', 'Lat Pulldown', 'Bicep Curl', 'Tricep Extension',
-  'Leg Press', 'Lunge', 'Romanian Deadlift', 'Leg Curl', 'Leg Extension',
-  'Calf Raise', 'Shoulder Press', 'Lateral Raise', 'Face Pull', 'Plank',
-  'Incline Bench Press', 'Dumbbell Press', 'Cable Fly', 'Hip Thrust', 'Dip',
-];
+/// Exercise names grouped by body part for the workout-log autocomplete —
+/// same categorized list as the HTML's `EXERCISES` map.
+const _exercisesByCategory = {
+  'Chest': ['Barbell Bench Press', 'Dumbbell Bench Press', 'Incline Bench Press', 'Incline Dumbbell Press', 'Decline Bench Press', 'Dumbbell Flyes', 'Cable Crossover', 'Push-ups', 'Chest Dips', 'Pec Deck Machine'],
+  'Back': ['Deadlift', 'Pull-ups', 'Chin-ups', 'Lat Pulldown', 'Barbell Row', 'Dumbbell Row', 'Seated Cable Row', 'T-Bar Row', 'Hyperextensions', 'Face Pulls'],
+  'Shoulders': ['Overhead Press', 'Dumbbell Shoulder Press', 'Arnold Press', 'Lateral Raises', 'Front Raises', 'Rear Delt Flyes', 'Barbell Shrugs', 'Upright Row'],
+  'Legs': ['Back Squat', 'Front Squat', 'Leg Press', 'Walking Lunges', 'Romanian Deadlift', 'Leg Extension', 'Leg Curl', 'Standing Calf Raise', 'Bulgarian Split Squat', 'Hip Thrust', 'Goblet Squat'],
+  'Arms': ['Barbell Curl', 'Dumbbell Curl', 'Hammer Curl', 'Preacher Curl', 'Cable Curl', 'Tricep Pushdown', 'Skull Crushers', 'Close-Grip Bench Press', 'Tricep Dips', 'Overhead Tricep Extension'],
+  'Core': ['Plank', 'Crunches', 'Russian Twists', 'Hanging Leg Raise', 'Cable Woodchoppers', 'Ab Wheel Rollout', 'Side Plank', 'Mountain Climbers'],
+  'Cardio': ['Treadmill Running', 'Cycling', 'Rowing Machine', 'Jump Rope', 'Stair Climber', 'Elliptical'],
+  'Functional': ['Kettlebell Swing', 'Battle Ropes', 'Box Jump', 'Burpees', "Farmer's Walk", 'Sled Push', 'Wall Balls'],
+};
+
+/// Flattened (name, category) pairs, same shape as the HTML's `EX_FLAT`.
+final _exerciseEntries = _exercisesByCategory.entries
+    .expand((e) => e.value.map((name) => (name: name, category: e.key)))
+    .toList();
 
 class DashboardTab extends StatefulWidget {
   const DashboardTab({super.key});
@@ -56,13 +64,26 @@ class _DashboardTabState extends State<DashboardTab> {
         _portalService.fetchWorkoutLogs(),
         _portalService.fetchMyBookings(),
       ]);
+      final allWorkouts = results[3] as List<WorkoutLog>;
+      final water = results[2] as WaterLog;
+      final bookingsCount = (results[4] as List).length;
       setState(() {
         _membership = results[0] as Membership?;
         _plans = results[1] as List<Plan>;
-        _water = results[2] as WaterLog;
-        _recentWorkouts = (results[3] as List<WorkoutLog>).take(5).toList();
-        _bookingsCount = (results[4] as List).length;
+        _water = water;
+        _recentWorkouts = allWorkouts.take(5).toList();
+        _bookingsCount = bookingsCount;
       });
+      if (mounted) {
+        final engagement = context.read<EngagementProvider>();
+        engagement.setLiveSignals(
+          workoutCount: allWorkouts.length,
+          bookingCount: bookingsCount,
+          waterGlassesToday: water.glassCount,
+        );
+        final goal = context.read<AuthProvider>().profile?.goal;
+        engagement.setHasGoal(goal != null && goal.isNotEmpty);
+      }
     } catch (_) {
       // Swallow — each card below handles its own null/empty state, and the
       // pull-to-refresh lets the member retry without a blocking error banner.
@@ -345,16 +366,41 @@ class _DashboardTabState extends State<DashboardTab> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Autocomplete<String>(
+            Autocomplete<({String name, String category})>(
+              displayStringForOption: (o) => o.name,
               optionsBuilder: (value) => value.text.isEmpty
-                  ? const Iterable<String>.empty()
-                  : _commonExercises.where((e) => e.toLowerCase().contains(value.text.toLowerCase())),
-              onSelected: (s) => exerciseText = s,
+                  ? const Iterable.empty()
+                  : _exerciseEntries.where((e) => e.name.toLowerCase().contains(value.text.toLowerCase())).take(8),
+              onSelected: (s) => exerciseText = s.name,
               fieldViewBuilder: (context, controller, focusNode, onSubmit) => TextField(
                 controller: controller,
                 focusNode: focusNode,
                 decoration: const InputDecoration(labelText: 'Exercise'),
                 onChanged: (v) => exerciseText = v,
+              ),
+              optionsViewBuilder: (context, onSelected, options) => Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  color: BhauColors.bg2,
+                  borderRadius: BorderRadius.circular(10),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 220, maxWidth: 320),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (context, i) {
+                        final o = options.elementAt(i);
+                        return ListTile(
+                          dense: true,
+                          title: Text(o.name, style: const TextStyle(fontSize: 13)),
+                          trailing: Text(o.category, style: BhauText.mono(fontSize: 10, color: BhauColors.faint)),
+                          onTap: () => onSelected(o),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 12),

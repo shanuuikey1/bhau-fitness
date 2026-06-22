@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -42,17 +43,52 @@ class EquipmentSection extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: Breakpoints.isDesktop(context)
+                  ? 5
+                  : Breakpoints.isTablet(context)
+                      ? 4
+                      : 2,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
               childAspectRatio: 1,
             ),
-            itemCount: equipmentImages.length,
-            itemBuilder: (_, i) => GestureDetector(
-              onTap: () => _openLightbox(context, equipmentImages[i]),
-              child: BhauImage(url: equipmentImages[i], radius: BorderRadius.circular(12)),
-            ),
+            itemCount: equipment.length,
+            itemBuilder: (_, i) {
+              final e = equipment[i];
+              return GestureDetector(
+                onTap: () => _openLightbox(context, e.image),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      BhauImage(url: e.image, radius: BorderRadius.zero),
+                      Positioned(
+                        left: 0, right: 0, bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(10, 18, 10, 8),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Colors.black87],
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(e.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: BhauColors.ink)),
+                              Text(e.category, style: BhauText.mono(fontSize: 9.5, color: BhauColors.muted)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

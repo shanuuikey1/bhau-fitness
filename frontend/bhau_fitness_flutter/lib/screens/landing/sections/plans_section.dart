@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/plan.dart';
 import '../../../services/auth_service.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 import 'section_scaffold.dart';
 
 /// Shows real plans from the API (`GET /plans` is public, same as the HTML
@@ -54,13 +55,11 @@ class _PlansSectionState extends State<PlansSection> {
               child: CircularProgressIndicator(),
             )
           else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _plans!.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (_, i) {
-                final p = _plans![i];
+            ResponsiveGrid(
+              tabletColumns: 2,
+              desktopColumns: 3,
+              children: [
+                for (final p in _plans!) Builder(builder: (context) {
                 final isFeatured = p.name.toLowerCase() == 'premium';
                 return Container(
                   padding: const EdgeInsets.all(24),
@@ -107,7 +106,8 @@ class _PlansSectionState extends State<PlansSection> {
                     ],
                   ),
                 );
-              },
+                }),
+              ],
             ),
         ],
       ),

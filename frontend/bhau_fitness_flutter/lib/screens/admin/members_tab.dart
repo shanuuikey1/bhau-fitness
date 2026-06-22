@@ -115,7 +115,27 @@ class _AdminMembersTabState extends State<AdminMembersTab> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BhauDecor.card(radius: 10),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 16, color: BhauColors.faint),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'New members sign up themselves from the app. Use the menu on each row to '
+                    'grant a membership, deactivate one, or promote someone to admin.',
+                    style: BhauText.body(fontSize: 11.5, color: BhauColors.faint),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
           child: TextField(
             controller: _searchCtrl,
             decoration: const InputDecoration(

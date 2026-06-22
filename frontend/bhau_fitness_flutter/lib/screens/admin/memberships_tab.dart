@@ -55,6 +55,17 @@ class _AdminMembershipsTabState extends State<AdminMembershipsTab> {
     return map;
   }
 
+  /// Total active MRR — same "Total active MRR" line the HTML injects above
+  /// its memberships view, computed here as Σ(active members × their plan price).
+  double get _totalActiveMrr {
+    var total = 0.0;
+    for (final entry in _membersByPlan.entries) {
+      final matches = _plans.where((p) => p.name == entry.key);
+      if (matches.isNotEmpty) total += matches.first.price * entry.value.length;
+    }
+    return total;
+  }
+
   Future<void> _openPlanDialog({Plan? existing}) async {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final priceCtrl = TextEditingController(text: existing?.price.toStringAsFixed(0) ?? '');
@@ -155,6 +166,19 @@ class _AdminMembershipsTabState extends State<AdminMembershipsTab> {
                       )),
                   const SizedBox(height: 16),
                   Text('MEMBERS BY PLAN', style: BhauText.eyebrow()),
+                  const SizedBox(height: 8),
+                  Text.rich(
+                    TextSpan(
+                      style: BhauText.body(fontSize: 13, color: BhauColors.faint),
+                      children: [
+                        const TextSpan(text: 'Total active MRR: '),
+                        TextSpan(
+                          text: '₹${_totalActiveMrr.toStringAsFixed(0)}',
+                          style: const TextStyle(color: BhauColors.lime, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   ..._buildMembersByPlan(),
                 ],

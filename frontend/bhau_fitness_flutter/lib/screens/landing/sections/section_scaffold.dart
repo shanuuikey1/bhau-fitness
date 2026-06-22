@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 
 /// Shared "eyebrow + heading + subtitle, centered" header used by almost
 /// every section in the HTML (`.shead`).
@@ -20,7 +21,10 @@ class SectionHeader extends StatelessWidget {
           Text(title, style: BhauText.display(fontSize: 32), textAlign: TextAlign.center),
           if (subtitle != null) ...[
             const SizedBox(height: 12),
-            Text(subtitle!, style: BhauText.body(fontSize: 15), textAlign: TextAlign.center),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Text(subtitle!, style: BhauText.body(fontSize: 15), textAlign: TextAlign.center),
+            ),
           ],
         ],
       ),
@@ -41,7 +45,7 @@ class Section extends StatelessWidget {
       width: double.infinity,
       color: background,
       padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
-      child: child,
+      child: ContentMaxWidth(child: child),
     );
   }
 }

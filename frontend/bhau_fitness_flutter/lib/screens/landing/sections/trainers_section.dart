@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -15,8 +16,12 @@ class TrainersSection extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: Breakpoints.isDesktop(context)
+                  ? 4
+                  : Breakpoints.isTablet(context)
+                      ? 3
+                      : 2,
               mainAxisSpacing: 14,
               crossAxisSpacing: 14,
               childAspectRatio: 0.78,

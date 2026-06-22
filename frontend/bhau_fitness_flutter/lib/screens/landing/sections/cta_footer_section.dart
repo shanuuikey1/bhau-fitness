@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../services/external_links.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 
 class CtaSection extends StatelessWidget {
   final VoidCallback onJoin;
@@ -9,7 +11,9 @@ class CtaSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
-      child: Container(
+      child: ContentMaxWidth(
+        maxWidth: 900,
+        child: Container(
         padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 28),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
@@ -36,6 +40,7 @@ class CtaSection extends StatelessWidget {
               child: const Text('Join BHAU Fitness'),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -82,41 +87,166 @@ class FooterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brand = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 30, height: 30,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), gradient: BhauColors.cyanLimeGradient),
+              alignment: Alignment.center,
+              child: const Text('B', style: TextStyle(color: BhauColors.bg, fontWeight: FontWeight.w900)),
+            ),
+            const SizedBox(width: 10),
+            Text('BHAU FITNESS', style: BhauText.display(fontSize: 17)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Premium fitness studio in Parasia, Chhindwara. Where strength meets luxury.',
+          style: BhauText.body(fontSize: 12.5, color: BhauColors.faint),
+        ),
+      ],
+    );
+
+    final hours = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('PARASIA, CHHINDWARA, MADHYA PRADESH', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
+        const SizedBox(height: 6),
+        Text('MON–SAT · 5AM – 11PM', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
+        const SizedBox(height: 12),
+        const _OpenNowBadge(),
+      ],
+    );
+
+    final contact = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('CONTACT', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint, weight: FontWeight.w700)),
+        const SizedBox(height: 10),
+        _ContactLink(icon: Icons.call_outlined, label: BhauContact.phone, onTap: BhauContact.openPhone),
+        _ContactLink(icon: Icons.chat_outlined, label: 'WhatsApp us', onTap: BhauContact.openWhatsApp),
+        _ContactLink(icon: Icons.mail_outline, label: BhauContact.email, onTap: BhauContact.openEmail),
+        _ContactLink(icon: Icons.camera_alt_outlined, label: '@${BhauContact.instagram}', onTap: BhauContact.openInstagram),
+      ],
+    );
+
+    final isDesktop = Breakpoints.isDesktop(context);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
       decoration: const BoxDecoration(border: Border(top: BorderSide(color: BhauColors.line))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 30, height: 30,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), gradient: BhauColors.cyanLimeGradient),
-                alignment: Alignment.center,
-                child: const Text('B', style: TextStyle(color: BhauColors.bg, fontWeight: FontWeight.w900)),
+      child: ContentMaxWidth(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _MapCard(),
+            const SizedBox(height: 32),
+            if (isDesktop)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: brand),
+                  Expanded(child: hours),
+                  Expanded(child: contact),
+                ],
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [brand, const SizedBox(height: 24), hours, const SizedBox(height: 24), contact],
               ),
-              const SizedBox(width: 10),
-              Text('BHAU FITNESS', style: BhauText.display(fontSize: 17)),
-            ],
+            const SizedBox(height: 22),
+            const Divider(color: BhauColors.line),
+            const SizedBox(height: 14),
+            Text('© ${DateTime.now().year} BHAU FITNESS. All rights reserved.',
+                style: BhauText.body(fontSize: 11, color: BhauColors.faint)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Stand-in for the HTML's embedded Google Maps `<iframe>` (`.map-card`) —
+/// Flutter has no equivalent of a live map embed without a Maps SDK/API key,
+/// so this opens the same location in the device's/browser's Maps app.
+class _MapCard extends StatelessWidget {
+  const _MapCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: BhauContact.openMaps,
+      child: Container(
+        // Explicit width is required here: the Stack below has only one
+        // non-positioned child (the center icon), so without a fixed width
+        // the whole card collapses to that icon's intrinsic ~56px width
+        // instead of filling the available row — exactly the squished,
+        // narrow-and-tall card you saw.
+        width: double.infinity,
+        height: 220,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0D2730), Color(0xFF0A1116)],
           ),
-          const SizedBox(height: 14),
-          Text(
-            'Premium fitness studio in Parasia, Chhindwara. Where strength meets luxury.',
-            style: BhauText.body(fontSize: 12.5, color: BhauColors.faint),
-          ),
-          const SizedBox(height: 24),
-          Text('PARASIA, CHHINDWARA, MADHYA PRADESH', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
-          const SizedBox(height: 6),
-          Text('MON–SAT · 5AM – 11PM', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
-          const SizedBox(height: 12),
-          const _OpenNowBadge(),
-          const SizedBox(height: 22),
-          const Divider(color: BhauColors.line),
-          const SizedBox(height: 14),
-          Text('© ${DateTime.now().year} BHAU FITNESS. All rights reserved.',
-              style: BhauText.body(fontSize: 11, color: BhauColors.faint)),
-        ],
+          border: Border.all(color: BhauColors.line2),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Icon(Icons.map_outlined, size: 56, color: BhauColors.cyan),
+            Positioned(
+              left: 16, bottom: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_on, color: BhauColors.lime, size: 16),
+                    const SizedBox(width: 6),
+                    Text('BHAU FITNESS · Parasia — tap to open in Maps',
+                        style: BhauText.body(fontSize: 11.5, color: BhauColors.ink)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContactLink extends StatelessWidget {
+  const _ContactLink({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: BhauColors.faint),
+            const SizedBox(width: 8),
+            Text(label, style: BhauText.body(fontSize: 12.5, color: BhauColors.faint)),
+          ],
+        ),
       ),
     );
   }

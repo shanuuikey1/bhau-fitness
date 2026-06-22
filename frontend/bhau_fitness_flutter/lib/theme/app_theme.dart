@@ -127,13 +127,39 @@ ThemeData buildBhauTheme() {
       ),
       labelStyle: const TextStyle(color: BhauColors.muted),
     ),
+    // Buttons mirror the HTML's `.btn` class exactly: Inter at 700 weight /
+    // 15px, 12px corner radius, 24px/14px padding — NOT the Anton display
+    // font, and not Material 3's default full-pill (StadiumBorder) shape.
+    // The previous button textStyle omitted a fontFamily, which made button
+    // labels silently fall back to the browser's default font instead of
+    // Inter — the "off" look. Defining all three button themes here means
+    // every ElevatedButton/OutlinedButton/TextButton in the app picks this up
+    // automatically; per-widget `.styleFrom` calls only need to override
+    // colour, not font or shape.
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: BhauColors.lime,
         foregroundColor: BhauColors.bg,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 15),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: BhauColors.ink,
+        side: const BorderSide(color: BhauColors.line2),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 15),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: BhauColors.cyan,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
       ),
     ),
     cardTheme: CardThemeData(

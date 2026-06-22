@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/responsive.dart';
 import 'members_tab.dart';
 import 'memberships_tab.dart';
 import 'overview_tab.dart';
@@ -28,15 +29,45 @@ class _AdminShellState extends State<AdminShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Admin · ${_titles[_index]}'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+    final isDesktop = Breakpoints.isDesktop(context);
+    final appBar = AppBar(
+      title: Text('Admin · ${_titles[_index]}'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.of(context).pop(),
       ),
-      body: IndexedStack(index: _index, children: _tabs),
+    );
+    final body = IndexedStack(index: _index, children: _tabs);
+
+    if (isDesktop) {
+      return Scaffold(
+        appBar: appBar,
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            NavigationRail(
+              selectedIndex: _index,
+              onDestinationSelected: (i) => setState(() => _index = i),
+              backgroundColor: BhauColors.bg1,
+              labelType: NavigationRailLabelType.all,
+              indicatorColor: BhauColors.lime.withValues(alpha: 0.18),
+              destinations: const [
+                NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard, color: BhauColors.lime), label: Text('Overview')),
+                NavigationRailDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: BhauColors.lime), label: Text('Members')),
+                NavigationRailDestination(icon: Icon(Icons.card_membership_outlined), selectedIcon: Icon(Icons.card_membership, color: BhauColors.lime), label: Text('Plans')),
+                NavigationRailDestination(icon: Icon(Icons.event_outlined), selectedIcon: Icon(Icons.event, color: BhauColors.lime), label: Text('Schedule')),
+              ],
+            ),
+            const VerticalDivider(width: 1, color: BhauColors.line),
+            Expanded(child: ContentMaxWidth(maxWidth: 1100, child: body)),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: appBar,
+      body: body,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

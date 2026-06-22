@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/responsive.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -18,10 +19,13 @@ class TransformationsSection extends StatelessWidget {
             title: 'MEMBER TRANSFORMATIONS',
             subtitle: 'Drag the slider to see the difference our programs make.',
           ),
-          ...transformations.map((t) => Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: _BeforeAfterCard(item: t),
-              )),
+          ResponsiveGrid(
+            tabletColumns: 2,
+            desktopColumns: 2,
+            children: [
+              for (final t in transformations) _BeforeAfterCard(item: t),
+            ],
+          ),
         ],
       ),
     );
@@ -37,8 +41,8 @@ class _BeforeAfterCard extends StatefulWidget {
 }
 
 class _BeforeAfterCardState extends State<_BeforeAfterCard> {
-  // 0..1 fraction: how much of the "after" image is revealed from the left.
-  double _split = 0.5;
+  // 0..1 fraction: how much of the "after" image is revealed from the right.
+  double _split = 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +69,7 @@ class _BeforeAfterCardState extends State<_BeforeAfterCard> {
                       // Before (full width, underneath).
                       Image.network(widget.item.before, fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
-                      // After (clipped to the left portion, on top).
+                      // After (clipped from the left, on top).
                       ClipRect(
                         clipper: _LeftClipper(_split),
                         child: Image.network(widget.item.after, fit: BoxFit.cover,
@@ -74,11 +78,11 @@ class _BeforeAfterCardState extends State<_BeforeAfterCard> {
                       // Corner labels.
                       Positioned(
                         bottom: 14, left: 14,
-                        child: _label('AFTER'),
+                        child: _label('BEFORE'),
                       ),
                       Positioned(
                         bottom: 14, right: 14,
-                        child: _label('BEFORE'),
+                        child: _label('AFTER'),
                       ),
                       // Divider bar + handle.
                       Positioned(
@@ -131,7 +135,7 @@ class _BeforeAfterCardState extends State<_BeforeAfterCard> {
 }
 
 /// Clips its child to the left [fraction] of the available width — used to
-/// reveal the "after" image up to the slider position.
+/// reveal the "after" image from the left as the slider moves right.
 class _LeftClipper extends CustomClipper<Rect> {
   final double fraction;
   _LeftClipper(this.fraction);

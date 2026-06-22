@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
 
 /// Canned/rule-based responder — no live LLM integration is in scope here,
@@ -20,21 +24,59 @@ class _ChatMsg {
 class _AiCoachPaneState extends State<AiCoachPane> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
-  final List<_ChatMsg> _messages = [
-    _ChatMsg("Hey! I'm your BHAU coach. Ask me about nutrition, workouts, or recovery.", false),
+  final List<_ChatMsg> _messages = [];
+  int? _tdee;
+  bool _greeted = false;
+
+  // Same three full pre-written questions as the HTML's `.ai-chips`
+  // (short button labels, full question text sent as the chat message).
+  static const _chips = [
+    ('Post leg-day meal?', 'What should I eat after a leg day?'),
+    ('20-min home workout', 'Give me a 20-minute fat loss workout I can do at home.'),
+    ('Daily protein?', 'How much protein should I eat per day?'),
   ];
 
-  static const _chips = ['Nutrition tips', 'Workout advice', 'Recovery help', 'Motivation'];
+  @override
+  void initState() {
+    super.initState();
+    _loadMetrics();
+  }
+
+  Future<void> _loadMetrics() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('bhau_metrics');
+      if (raw != null) {
+        final metrics = jsonDecode(raw) as Map<String, dynamic>;
+        _tdee = metrics['tdee'] as int?;
+      }
+    } catch (_) {
+      // No saved BMI metrics yet — coach just won't reference them.
+    }
+    if (mounted && !_greeted) {
+      _greeted = true;
+      final name = context.read<AuthProvider>().profile?.fullName.split(' ').first;
+      setState(() {
+        _messages.add(_ChatMsg(
+          "Hey${name != null ? ' $name' : ''}! I'm your BHAU AI coach. Ask me about workouts, meals, or "
+          "recovery — I'll tailor it to your goal.",
+          false,
+        ));
+      });
+    }
+  }
 
   String _respond(String input) {
     final q = input.toLowerCase();
-    if (q.contains('nutrition') || q.contains('diet') || q.contains('eat')) {
+    if (q.contains('nutrition') || q.contains('diet') || q.contains('eat') || q.contains('protein') || q.contains('meal')) {
+      final tdeeNote = _tdee != null ? ' Based on your BMI tool result, that puts your maintenance around $_tdee kcal/day.' : '';
       return 'Aim for ~1.6–2g of protein per kg of bodyweight, prioritize whole foods, '
-          "and don't fear carbs around your training sessions — they fuel performance.";
+          "and don't fear carbs around your training sessions — they fuel performance.$tdeeNote";
     }
-    if (q.contains('workout') || q.contains('exercise') || q.contains('train')) {
+    if (q.contains('workout') || q.contains('exercise') || q.contains('train') || q.contains('home')) {
       return "Progressive overload is king — add a little weight or a rep each week. "
-          'Pair compound lifts (squat, deadlift, bench, row) with 2-3 accessory movements.';
+          'Pair compound lifts (squat, deadlift, bench, row) with 2-3 accessory movements. '
+          'For a quick home session: 4 rounds of squats, push-ups, mountain climbers and plank, 40s on/20s off.';
     }
     if (q.contains('recover') || q.contains('sore') || q.contains('rest') || q.contains('sleep')) {
       return 'Recovery is where the gains actually happen — aim for 7-9 hours of sleep, '
@@ -44,8 +86,9 @@ class _AiCoachPaneState extends State<AiCoachPane> {
       return "Showing up on the hard days is the whole game. You don't need to feel motivated — "
           'just get through the warm-up, momentum usually takes care of the rest.';
     }
-    return "Good question! For anything specific, ask me about nutrition, workouts, or recovery — "
-        "that's where I'm most useful right now.";
+    return "My AI brain isn't wired up on this server yet. General tip: stay consistent, prioritise protein "
+        'and sleep, and progress your weights weekly. For a personalised plan, tap WhatsApp and a coach will '
+        'help you directly.';
   }
 
   void _send(String text) {
@@ -80,10 +123,10 @@ class _AiCoachPaneState extends State<AiCoachPane> {
           spacing: 8,
           children: _chips
               .map((c) => ActionChip(
-                    label: Text(c, style: const TextStyle(fontSize: 12)),
+                    label: Text(c.$1, style: const TextStyle(fontSize: 12)),
                     backgroundColor: BhauColors.bg2,
                     side: const BorderSide(color: BhauColors.line),
-                    onPressed: () => _send(c),
+                    onPressed: () => _send(c.$2),
                   ))
               .toList(),
         ),

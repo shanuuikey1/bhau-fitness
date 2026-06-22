@@ -6,54 +6,115 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// security- or money-sensitive (it mirrors what the HTML site keeps in
 /// `localStorage`), so it doesn't need server persistence; it just needs to
 /// survive app restarts, which SharedPreferences gives us for free.
+///
+/// Habit list, badge set, roadmap copy, and the leaderboard demo roster are
+/// copied verbatim from the HTML's `HABIT_DEFS`/`BADGES`/`ROADMAP`/`DEMO`
+/// consts so the gamified content matches the original site exactly, even
+/// though (same as the HTML) none of it is backend-persisted.
 class EngagementProvider extends ChangeNotifier {
-  static const _habitKeys = ['water', 'workout', 'sleep', 'stretch'];
+  static const _habitKeys = ['steps', 'water', 'protein', 'sleep', 'train', 'nosugar'];
   static const _habitLabels = {
-    'water': 'Drink 8 glasses of water',
-    'workout': "Complete today's workout",
-    'sleep': 'Sleep 7+ hours',
-    'stretch': 'Stretch / mobility work',
+    'steps': '10,000 steps',
+    'water': '2L water',
+    'protein': 'Hit protein goal',
+    'sleep': '7+ hrs sleep',
+    'train': 'Train today',
+    'nosugar': 'No added sugar',
+  };
+  static const _habitIcons = {
+    'steps': '🚶',
+    'water': '💧',
+    'protein': '🍗',
+    'sleep': '😴',
+    'train': '🏋️',
+    'nosugar': '🚫',
   };
 
   static const _roadmapSteps = [
-    ['First Workout', 'Log your very first workout set.'],
-    ['3-Day Streak', 'Complete habits for 3 days in a row.'],
-    ['First Booking', 'Book your first class.'],
-    ['7-Day Streak', 'A full week of consistency.'],
-    ['Refer a Friend', 'Share your referral code with someone.'],
-    ['30-Day Streak', 'A full month — you have a habit now.'],
+    ['Fitness Assessment', 'Body metrics, goals & baseline measured'],
+    ['Custom Plan Built', 'Training + nutrition tailored to your goal'],
+    ['First 4 Weeks', 'Build the habit, learn the movements'],
+    ['Week 8 Check-in', 'Measure progress, adjust the plan'],
+    ['Week 12 Milestone', 'Visible results & new personal records'],
+    ['Transformation', 'Goal reached — time to set the next one'],
+  ];
+
+  static const _leaderboardDemo = [
+    {'name': 'Vikram S.', 'points': 920},
+    {'name': 'Priya N.', 'points': 870},
+    {'name': 'Arjun M.', 'points': 805},
+    {'name': 'Sneha P.', 'points': 760},
+    {'name': 'Rohit K.', 'points': 690},
+    {'name': 'Kavya R.', 'points': 635},
+    {'name': 'Manish T.', 'points': 580},
   ];
 
   SharedPreferences? _prefs;
   Map<String, bool> _habitsToday = {};
-  int _points = 0;
+  int _manualPoints = 0;
   int _streakDays = 0;
   String? _lastActiveDate;
   Set<int> _roadmapDone = {};
   List<MapEntry<DateTime, double>> _weightEntries = [];
+  bool _hasGoal = false;
+
+  // Live signals pushed in from the dashboard once it fetches real data —
+  // these feed both badge unlock checks and the activity-score formula,
+  // mirroring the HTML's `activityScore()` which reads `workouts.length`,
+  // `waterIntake`, and `profile.streak` from elsewhere on the page.
+  int _workoutCount = 0;
+  int _bookingCount = 0;
+  int _waterGlassesToday = 0;
 
   Map<String, bool> get habitsToday => _habitsToday;
-  int get points => _points;
   int get streakDays => _streakDays;
   Set<int> get roadmapDone => _roadmapDone;
   List<List<String>> get roadmapSteps => _roadmapSteps;
   List<MapEntry<DateTime, double>> get weightEntries => _weightEntries;
   String habitLabel(String key) => _habitLabels[key] ?? key;
+  String habitIcon(String key) => _habitIcons[key] ?? '✓';
   List<String> get habitKeys => _habitKeys;
 
+  int get habitsDoneToday => _habitsToday.values.where((v) => v).length;
+
+  /// Same composite formula as the HTML's `activityScore()`: streak*10 +
+  /// workouts*5 + today's-habits*8 + weight-logs*3 + manually-earned points
+  /// (habit toggles +5, roadmap steps +20 — there's no server-side "points"
+  /// column here, so manual points stand in for the HTML's `profile.points`).
+  int get score =>
+      _streakDays * 10 + _workoutCount * 5 + habitsDoneToday * 8 + _weightEntries.length * 3 + _manualPoints;
+
+  void setLiveSignals({required int workoutCount, required int bookingCount, required int waterGlassesToday}) {
+    _workoutCount = workoutCount;
+    _bookingCount = bookingCount;
+    _waterGlassesToday = waterGlassesToday;
+    notifyListeners();
+  }
+
+  void setHasGoal(bool value) {
+    _hasGoal = value;
+    notifyListeners();
+  }
+
   List<Map<String, dynamic>> get badges => [
-        {'icon': '🔥', 'name': 'On Fire', 'desc': '3-day streak', 'unlocked': _streakDays >= 3},
-        {'icon': '💪', 'name': 'Consistent', 'desc': '7-day streak', 'unlocked': _streakDays >= 7},
-        {'icon': '🏆', 'name': 'Dedicated', 'desc': '30-day streak', 'unlocked': _streakDays >= 30},
-        {'icon': '⭐', 'name': 'Rising Star', 'desc': '100+ points', 'unlocked': _points >= 100},
-        {'icon': '👑', 'name': 'Elite', 'desc': '500+ points', 'unlocked': _points >= 500},
+        {'icon': '🎯', 'name': 'Goal Setter', 'desc': 'Pick a goal', 'unlocked': _hasGoal},
+        {'icon': '💪', 'name': 'First Lift', 'desc': 'Log 1 workout', 'unlocked': _workoutCount >= 1},
+        {'icon': '🔥', 'name': '10 Workouts', 'desc': 'Log 10 workouts', 'unlocked': _workoutCount >= 10},
+        {'icon': '💧', 'name': 'Hydrated', 'desc': 'Hit 8 glasses', 'unlocked': _waterGlassesToday >= 8},
+        {'icon': '📅', 'name': 'Class Booker', 'desc': 'Book a class', 'unlocked': _bookingCount >= 1},
+        {'icon': '⚖️', 'name': 'Tracker', 'desc': 'Log weight 3x', 'unlocked': _weightEntries.length >= 3},
+        {'icon': '🌅', 'name': 'Habit Hero', 'desc': 'All daily habits', 'unlocked': habitsDoneToday == _habitKeys.length},
+        {'icon': '⚡', 'name': '7-Day Streak', 'desc': '7-day streak', 'unlocked': _streakDays >= 7},
+        {'icon': '🏆', 'name': '30-Day Streak', 'desc': '30-day streak', 'unlocked': _streakDays >= 30},
+        {'icon': '👑', 'name': 'Centurion', 'desc': '100-day streak', 'unlocked': _streakDays >= 100},
       ];
 
   Future<void> load() async {
     _prefs = await SharedPreferences.getInstance();
-    _points = _prefs!.getInt('eng_points') ?? 0;
+    _manualPoints = _prefs!.getInt('eng_points') ?? 0;
     _streakDays = _prefs!.getInt('eng_streak') ?? 0;
     _lastActiveDate = _prefs!.getString('eng_last_active');
+    _hasGoal = _prefs!.getBool('eng_has_goal') ?? false;
     _roadmapDone = (_prefs!.getStringList('eng_roadmap') ?? []).map(int.parse).toSet();
     _weightEntries = (_prefs!.getStringList('eng_weights') ?? []).map((s) {
       final parts = s.split('|');
@@ -83,8 +144,8 @@ class EngagementProvider extends ChangeNotifier {
     );
 
     if (!wasDone) {
-      _points += 5;
-      await _prefs!.setInt('eng_points', _points);
+      _manualPoints += 5;
+      await _prefs!.setInt('eng_points', _manualPoints);
     }
 
     final allDone = _habitsToday.values.every((v) => v);
@@ -107,8 +168,8 @@ class EngagementProvider extends ChangeNotifier {
       _roadmapDone.remove(index);
     } else {
       _roadmapDone.add(index);
-      _points += 20;
-      await _prefs!.setInt('eng_points', _points);
+      _manualPoints += 20;
+      await _prefs!.setInt('eng_points', _manualPoints);
     }
     await _prefs!.setStringList('eng_roadmap', _roadmapDone.map((i) => i.toString()).toList());
     notifyListeners();
@@ -125,15 +186,12 @@ class EngagementProvider extends ChangeNotifier {
   }
 
   /// Demo leaderboard — the HTML site shows a current-month ranking with no
-  /// real social backend either; this blends the real local point total in
-  /// with a few static demo members so it doesn't look empty on first run.
+  /// real social backend either; this blends the real live `score` in with
+  /// the same 7 static demo names/points the HTML hardcodes.
   List<Map<String, dynamic>> leaderboard(String myName) {
     final entries = [
-      {'name': 'Rohit Sahu', 'points': 480},
-      {'name': 'Anjali Verma', 'points': 365},
-      {'name': 'Deepak Thakur', 'points': 290},
-      {'name': myName, 'points': _points, 'me': true},
-      {'name': 'Sneha Patil', 'points': 110},
+      ..._leaderboardDemo,
+      {'name': myName, 'points': score, 'me': true},
     ];
     entries.sort((a, b) => (b['points'] as int).compareTo(a['points'] as int));
     return entries;

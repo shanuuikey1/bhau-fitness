@@ -1,62 +1,91 @@
 /// Static marketing content mirrored from bhau_fitness_v3.html — programs,
 /// equipment, testimonials, trainers, FAQ. These never come from the API in
 /// the HTML site either (hardcoded JS arrays), so we keep them as Dart consts.
+/// Values here are copied verbatim from the HTML's live-rendered `PROGRAMS`/
+/// `TRAINERS`/`TESTIMONIALS`/`EQUIPMENT`/`FAQS` consts (not the CSS comment
+/// markers of the same name), so they match what a visitor to the original
+/// site actually sees.
 class ProgramItem {
   final String title;
   final String desc;
+  final String weeks;
+  final String level;
   final String tag;
   final String image;
-  const ProgramItem(this.title, this.desc, this.tag, this.image);
+  const ProgramItem(this.title, this.desc, this.weeks, this.level, this.tag, this.image);
 }
 
 const programs = [
   ProgramItem(
     'Strength Training',
-    'Progressive overload programs built around compound lifts — for raw, measurable strength gains.',
+    'Build raw power and muscle mass with a program designed by professional powerlifters.',
+    '12 Weeks',
+    'All Levels',
     'STRENGTH',
-    'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&q=80',
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
   ),
   ProgramItem(
     'Body Transformation',
-    'A structured 12-week plan combining training, nutrition coaching, and weekly check-ins.',
+    'Complete body recomposition combining strength, cardio and precision nutrition.',
+    '16 Weeks',
+    'Beginner+',
     'TRANSFORM',
-    'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-  ),
-  ProgramItem(
-    'Fat Loss',
-    'High-output metabolic circuits paired with a calorie-aware nutrition framework.',
-    'FAT LOSS',
     'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80',
   ),
   ProgramItem(
-    'Functional Athlete',
-    'Mobility, power, and conditioning work designed for real-world athletic performance.',
-    'ATHLETIC',
-    'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=800&q=80',
+    'Fat Loss Protocol',
+    'Science-backed fat loss with HIIT, metabolic conditioning and strategic fueling.',
+    '8 Weeks',
+    'All Levels',
+    'FAT LOSS',
+    'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&q=80',
   ),
   ProgramItem(
+    'Functional Athlete',
+    'Move better, jump higher, hit harder. Built for real-world performance.',
+    '10 Weeks',
+    'Intermediate',
+    'ATHLETIC',
+    'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&q=80',
+  ),
+  ProgramItem(
+    'HIIT & Conditioning',
+    'Burn maximum calories in minimum time with high-intensity interval training.',
+    '6 Weeks',
+    'All Levels',
     'HIIT',
-    'Short, brutal, effective — interval training that torches calories in 30 minutes flat.',
-    'HIIT',
-    'https://images.unsplash.com/photo-1599058917765-a780eda07a3e?w=800&q=80',
+    'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=800&q=80',
   ),
   ProgramItem(
     'Yoga & Mobility',
-    'Recovery-focused sessions that keep you training hard without breaking down.',
+    'Restore flexibility, balance and calm with guided flows and mobility work.',
+    'Ongoing',
+    'All Levels',
     'RECOVERY',
-    'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&q=80',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80',
   ),
 ];
 
-const equipmentImages = [
-  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
-  'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&q=80',
-  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80',
-  'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&q=80',
-  'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&q=80',
-  'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600&q=80',
-  'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&q=80',
-  'https://images.unsplash.com/photo-1558611848-73f7eb4001a1?w=600&q=80',
+class EquipmentItem {
+  final String name;
+  final String category;
+  final String image;
+  const EquipmentItem(this.name, this.category, this.image);
+}
+
+// Every URL below was individually downloaded and visually verified to show
+// the correct equipment before being used — several of the HTML's original
+// Unsplash IDs (e.g. its "Treadmill Pro"/"Rowing Erg" photos) turned out to
+// have been swapped server-side to unrelated images since the HTML was built.
+const equipment = [
+  EquipmentItem('Power Rack', 'Strength', 'https://images.unsplash.com/photo-1620188467120-5042ed1eb5da?w=600&q=80'),
+  EquipmentItem('Treadmill Pro', 'Cardio', 'https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=600&q=80'),
+  EquipmentItem('Cable Crossover', 'Functional', 'https://images.unsplash.com/photo-1571388208497-71bedc66e932?w=600&q=80'),
+  EquipmentItem('Dumbbell Set', 'Free Weights', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=600&q=80'),
+  EquipmentItem('Smith Machine', 'Strength', 'https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=600&q=80'),
+  EquipmentItem('Rowing Erg', 'Cardio', 'https://images.unsplash.com/photo-1623874514711-0f321325f318?w=600&q=80'),
+  EquipmentItem('Kettlebell Rack', 'Functional', 'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=600&q=80'),
+  EquipmentItem('Leg Press', 'Strength', 'https://images.unsplash.com/photo-1561214078-f3247647fc5e?w=600&q=80'),
 ];
 
 class Transformation {
@@ -67,29 +96,45 @@ class Transformation {
   const Transformation(this.name, this.weeks, this.before, this.after);
 }
 
+// Same as equipment above — visually verified pairs (matching gender, similar
+// framing) instead of the HTML's original IDs, several of which no longer
+// resolve to plausible before/after pairings.
 const transformations = [
   Transformation('Rahul S.', '16 weeks',
-      'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80',
-      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80'),
+      'https://images.unsplash.com/photo-1556817411-31ae72fa3ea0?w=800&q=80',
+      'https://images.unsplash.com/photo-1581009137042-c552e485697a?w=800&q=80'),
   Transformation('Priya K.', '12 weeks',
-      'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=800&q=80',
-      'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=800&q=80'),
+      'https://images.unsplash.com/photo-1581122584612-713f89daa8eb?w=800&q=80',
+      'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80'),
 ];
 
 class Testimonial {
   final String name;
   final String result;
   final String quote;
-  const Testimonial(this.name, this.result, this.quote);
+  final String image;
+  const Testimonial(this.name, this.result, this.quote, this.image);
 }
 
 const testimonials = [
-  Testimonial('Rohit Sahu', '-14kg in 5 months',
-      "I'd tried every diet under the sun before BHAU. The coaching here actually held me accountable — and it worked."),
-  Testimonial('Anjali Verma', '+6kg lean muscle',
-      'The trainers actually watch your form. First gym where I felt like a person, not a membership number.'),
-  Testimonial('Deepak Thakur', 'Back pain-free in 8 weeks',
-      "The functional training program fixed posture issues my physio couldn't. Genuinely life-changing."),
+  Testimonial(
+    'Rahul Sharma',
+    'Lost 18kg in 4 months',
+    'The trainers at BHAU don’t just train your body, they transform your mindset. Best decision I ever made.',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
+  ),
+  Testimonial(
+    'Ananya Gupta',
+    'Gained 8kg muscle',
+    'From barely doing 5 push-ups to benching 80kg. The community here pushes you to be your best every single day.',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80',
+  ),
+  Testimonial(
+    'Karan Malhotra',
+    'Body fat 28% → 12%',
+    'The nutrition guidance combined with the training protocols here is unmatched. This is not just a gym, it is a lifestyle upgrade.',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80',
+  ),
 ];
 
 class TrainerItem {
@@ -106,24 +151,24 @@ class TrainerItem {
 
 const trainers = [
   TrainerItem('Vikram Singh', 'STRENGTH & POWERLIFTING',
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&q=80',
+      'https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=600&q=80',
       exp: '12 years', instagram: 'vikram_lifts',
       certs: ['NSCA-CPT', 'ACE Strength Specialist'],
       tags: ['Powerlifting', 'Hypertrophy', 'Nutrition']),
   TrainerItem('Priya Nair', 'YOGA & MOBILITY',
-      'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=500&q=80',
+      'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600&q=80',
       exp: '8 years', instagram: 'priya.flow',
       certs: ['RYT-500', 'Pilates Mat'],
       tags: ['Vinyasa', 'Mobility', 'Meditation']),
   TrainerItem('Arjun Mehta', 'HIIT & CROSSFIT',
-      'https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=500&q=80',
+      'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&q=80',
       exp: '6 years', instagram: 'arjun.metcon',
       certs: ['CrossFit L2', 'NASM-PES'],
       tags: ['HIIT', 'Conditioning', 'Fat Loss']),
   TrainerItem('Sneha Patel', 'CARDIO & CONDITIONING',
-      'https://images.unsplash.com/photo-1554344728-77cf90d9ed26?w=500&q=80',
+      'https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?w=600&q=80',
       exp: '9 years', instagram: 'sneha.endure',
-      certs: ['ACSM-EP', 'Spinning'],
+      certs: ['ACSM-EP', 'Spinning®'],
       tags: ['Endurance', 'Cycling', 'Marathon Prep']),
 ];
 
@@ -134,12 +179,16 @@ class FaqItem {
 }
 
 const faqs = [
-  FaqItem('Do I need a prior fitness background to join?',
-      'Not at all — every program scales to your current level, from first-timers to competitive athletes.'),
-  FaqItem('Can I freeze or cancel my membership?',
-      'Yes, memberships can be paused for medical or travel reasons. Reach out to the front desk or support.'),
-  FaqItem('Are personal training sessions included?',
-      'Premium and Elite plans include PT session credits each month; Basic members can book PT separately.'),
-  FaqItem('What are your operating hours?',
-      'Open 5 AM – 11 PM on weekdays, 6 AM – 9 PM on weekends. Elite members get 24/7 access.'),
+  FaqItem('What are the gym timings?',
+      'We are open 5:00 AM to 11:00 PM, seven days a week. Elite members get 24/7 access.'),
+  FaqItem('Can I switch my membership plan?',
+      'Yes, you can upgrade or downgrade your plan at any time from your member portal or by contacting our front desk.'),
+  FaqItem('Is there a joining fee?',
+      'No hidden joining fees. You only pay your monthly membership fee. We believe in transparent pricing.'),
+  FaqItem('Do you offer personal training?',
+      'Absolutely. Personal training is included in our Premium and Elite plans, or available as an add-on for Basic members.'),
+  FaqItem('What safety measures are in place?',
+      'We maintain hospital-grade sanitization, air purification systems, and regular equipment maintenance checks.'),
+  FaqItem('Can I freeze my membership?',
+      'Yes, you can freeze your membership for up to 30 days per year due to travel or medical reasons.'),
 ];

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../theme/responsive.dart';
 import 'member/member_shell.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -18,7 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscure = true;
-  String _goal = 'fit';
+  String _goal = 'lose';
 
   static const _goals = [
     {'key': 'lose', 'label': 'Lose Fat', 'icon': '🔥'},
@@ -63,7 +64,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Form(
+          child: ContentMaxWidth(
+            maxWidth: 480,
+            child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -160,6 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       : const Text('Create Membership'),
                 ),
               ],
+            ),
             ),
           ),
         ),

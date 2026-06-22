@@ -182,6 +182,12 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFlutterClient");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/api/health", () => new { status = "ok", timestamp = DateTime.UtcNow })
+    .WithName("Health")
+    .WithOpenApi()
+    .AllowAnonymous();
+
 app.MapControllers();
 
 app.Run();
