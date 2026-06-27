@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
+import '../../../theme/widgets.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -46,80 +47,83 @@ class _BeforeAfterCardState extends State<_BeforeAfterCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BhauDecor.card(),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 10,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                void updateFromX(double dx) =>
-                    setState(() => _split = (dx / width).clamp(0.0, 1.0));
+    return HoverScale(
+      scale: 1.02,
+      child: Container(
+        decoration: BhauDecor.card(),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  void updateFromX(double dx) =>
+                      setState(() => _split = (dx / width).clamp(0.0, 1.0));
 
-                return GestureDetector(
-                  onHorizontalDragUpdate: (d) => updateFromX(d.localPosition.dx),
-                  onTapDown: (d) => updateFromX(d.localPosition.dx),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Before (full width, underneath).
-                      Image.network(widget.item.before, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
-                      // After (clipped from the left, on top).
-                      ClipRect(
-                        clipper: _LeftClipper(_split),
-                        child: Image.network(widget.item.after, fit: BoxFit.cover,
+                  return GestureDetector(
+                    onHorizontalDragUpdate: (d) => updateFromX(d.localPosition.dx),
+                    onTapDown: (d) => updateFromX(d.localPosition.dx),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Before (full width, underneath).
+                        Image.network(widget.item.before, fit: BoxFit.cover, alignment: Alignment.topCenter,
                             errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
-                      ),
-                      // Corner labels.
-                      Positioned(
-                        bottom: 14, left: 14,
-                        child: _label('BEFORE'),
-                      ),
-                      Positioned(
-                        bottom: 14, right: 14,
-                        child: _label('AFTER'),
-                      ),
-                      // Divider bar + handle.
-                      Positioned(
-                        left: width * _split - 1.5,
-                        top: 0, bottom: 0,
-                        child: Container(width: 3, color: BhauColors.cyan),
-                      ),
-                      Positioned(
-                        left: width * _split - 20,
-                        top: 0, bottom: 0,
-                        child: Center(
-                          child: Container(
-                            width: 40, height: 40,
-                            decoration: const BoxDecoration(shape: BoxShape.circle, color: BhauColors.cyan),
-                            child: const Icon(Icons.unfold_more, color: BhauColors.bg, size: 20),
+                        // After (clipped from the left, on top).
+                        ClipRect(
+                          clipper: _LeftClipper(_split),
+                          child: Image.network(widget.item.after, fit: BoxFit.cover, alignment: Alignment.topCenter,
+                              errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
+                        ),
+                        // Corner labels.
+                        Positioned(
+                          bottom: 14, left: 14,
+                          child: _label('BEFORE'),
+                        ),
+                        Positioned(
+                          bottom: 14, right: 14,
+                          child: _label('AFTER'),
+                        ),
+                        // Divider bar + handle.
+                        Positioned(
+                          left: width * _split - 1.5,
+                          top: 0, bottom: 0,
+                          child: Container(width: 3, color: BhauColors.cyan),
+                        ),
+                        Positioned(
+                          left: width * _split - 20,
+                          top: 0, bottom: 0,
+                          child: Center(
+                            child: Container(
+                              width: 40, height: 40,
+                              decoration: const BoxDecoration(shape: BoxShape.circle, color: BhauColors.cyan),
+                              child: const Icon(Icons.unfold_more, color: BhauColors.bg, size: 20),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
+              aspectRatio: 16 / 10,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 3),
-                Text('Transformation over ${widget.item.weeks}',
-                    style: BhauText.body(fontSize: 12.5, color: BhauColors.faint)),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 3),
+                  Text('Transformation over ${widget.item.weeks}',
+                      style: BhauText.body(fontSize: 12.5, color: BhauColors.faint)),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

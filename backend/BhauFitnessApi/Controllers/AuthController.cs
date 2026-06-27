@@ -71,10 +71,14 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null)
+        {
+            user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.Email);
+        }
         // Deliberately vague error on both "no such user" and "wrong password" —
         // same security reasoning Supabase uses: don't reveal which emails are registered.
         if (user == null)
-            return Unauthorized(new { error = "Invalid email or password." });
+            return Unauthorized(new { error = "Invalid email/mobile number or password." });
 
         var passwordOk = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordOk)

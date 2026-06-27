@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../services/external_links.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
+import '../../../theme/widgets.dart';
 
 class CtaSection extends StatelessWidget {
   final VoidCallback onJoin;
@@ -14,7 +15,7 @@ class CtaSection extends StatelessWidget {
       child: ContentMaxWidth(
         maxWidth: 900,
         child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 28),
+        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: BhauColors.line2),
@@ -27,17 +28,20 @@ class CtaSection extends StatelessWidget {
         child: Column(
           children: [
             Text('START YOUR\nTRANSFORMATION', textAlign: TextAlign.center, style: BhauText.display(fontSize: 30)),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(
               'Join hundreds of members who stopped waiting for "someday" — your first class is on us.',
               textAlign: TextAlign.center,
               style: BhauText.body(),
             ),
-            const SizedBox(height: 26),
-            ElevatedButton(
-              onPressed: onJoin,
-              style: ElevatedButton.styleFrom(backgroundColor: BhauColors.lime, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-              child: const Text('Join BHAU Fitness'),
+            const SizedBox(height: 32),
+            HoverScale(
+              scale: 1.05,
+              child: ElevatedButton(
+                onPressed: onJoin,
+                style: ElevatedButton.styleFrom(backgroundColor: BhauColors.lime, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
+                child: const Text('Join BHAU Fitness'),
+              ),
             ),
           ],
         ),
@@ -93,12 +97,7 @@ class FooterSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Container(
-              width: 30, height: 30,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), gradient: BhauColors.cyanLimeGradient),
-              alignment: Alignment.center,
-              child: const Text('B', style: TextStyle(color: BhauColors.bg, fontWeight: FontWeight.w900)),
-            ),
+            const HexagonLogo(size: 32),
             const SizedBox(width: 10),
             Text('BHAU FITNESS', style: BhauText.display(fontSize: 17)),
           ],
@@ -183,69 +182,93 @@ class _MapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: BhauContact.openMaps,
-      child: Container(
-        // Explicit width is required here: the Stack below has only one
-        // non-positioned child (the center icon), so without a fixed width
-        // the whole card collapses to that icon's intrinsic ~56px width
-        // instead of filling the available row — exactly the squished,
-        // narrow-and-tall card you saw.
-        width: double.infinity,
-        height: 220,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0D2730), Color(0xFF0A1116)],
+      child: HoverScale(
+        scale: 1.02,
+        child: Container(
+          // Explicit width is required here: the Stack below has only one
+          // non-positioned child (the center icon), so without a fixed width
+          // the whole card collapses to that icon's intrinsic ~56px width
+          // instead of filling the available row — exactly the squished,
+          // narrow-and-tall card you saw.
+          width: double.infinity,
+          height: 220,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0D2730), Color(0xFF0A1116)],
+            ),
+            border: Border.all(color: BhauColors.line2),
           ),
-          border: Border.all(color: BhauColors.line2),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const Icon(Icons.map_outlined, size: 56, color: BhauColors.cyan),
-            Positioned(
-              left: 16, bottom: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.location_on, color: BhauColors.lime, size: 16),
-                    const SizedBox(width: 6),
-                    Text('BHAU FITNESS · Parasia — tap to open in Maps',
-                        style: BhauText.body(fontSize: 11.5, color: BhauColors.ink)),
-                  ],
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(Icons.map_outlined, size: 56, color: BhauColors.cyan),
+              Positioned(
+                left: 16, bottom: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_on, color: BhauColors.lime, size: 16),
+                      const SizedBox(width: 6),
+                      Text('BHAU FITNESS · Parasia — tap to open in Maps',
+                          style: BhauText.body(fontSize: 11.5, color: BhauColors.ink)),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ContactLink extends StatelessWidget {
+class _ContactLink extends StatefulWidget {
   const _ContactLink({required this.icon, required this.label, required this.onTap});
   final IconData icon;
   final String label;
   final VoidCallback onTap;
 
   @override
+  State<_ContactLink> createState() => _ContactLinkState();
+}
+
+class _ContactLinkState extends State<_ContactLink> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
+    final color = _isHovered ? BhauColors.cyan : BhauColors.faint;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: BhauColors.faint),
-            const SizedBox(width: 8),
-            Text(label, style: BhauText.body(fontSize: 12.5, color: BhauColors.faint)),
-          ],
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(4),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(widget.icon, size: 15, color: color),
+                const SizedBox(width: 8),
+                Text(
+                  widget.label,
+                  style: BhauText.body(fontSize: 12.5, color: color),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

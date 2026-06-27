@@ -59,7 +59,7 @@ class _AdminShellState extends State<AdminShell> {
               ],
             ),
             const VerticalDivider(width: 1, color: BhauColors.line),
-            Expanded(child: ContentMaxWidth(maxWidth: 1100, child: body)),
+            Expanded(child: body),
           ],
         ),
       );

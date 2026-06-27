@@ -160,6 +160,20 @@ var app = builder.Build();
         await db.Database.MigrateAsync();
     }
 
+    // Clean up any legacy truncated class type names in the database
+    var sessions = await db.ClassSessions.ToListAsync();
+    bool updated = false;
+    foreach (var s in sessions)
+    {
+        if (s.Type == "Cardi") { s.Type = "Cardio"; updated = true; }
+        else if (s.Type == "Strengt") { s.Type = "Strength"; updated = true; }
+        else if (s.Type == "Functiona") { s.Type = "Functional"; updated = true; }
+    }
+    if (updated)
+    {
+        await db.SaveChangesAsync();
+    }
+
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     if (!await roleManager.RoleExistsAsync("Admin"))
     {
@@ -186,20 +200,6 @@ app.UseAuthorization();
 app.MapGet("/api/health", () => new { status = "ok", timestamp = DateTime.UtcNow })
     .WithName("Health")
     .AllowAnonymous();
-
-// Temporary bootstrap endpoint to promote first admin (remove after use)
-app.MapPost("/api/bootstrap/promote-admin", async (string email, UserManager<ApplicationUser> userManager) =>
-{
-    var user = await userManager.FindByEmailAsync(email);
-    if (user == null) return Results.NotFound();
-    if (!await userManager.IsInRoleAsync(user, "Admin"))
-    {
-        await userManager.AddToRoleAsync(user, "Admin");
-    }
-    return Results.Ok();
-})
-.AllowAnonymous()
-.WithName("PromoteFirstAdmin");
 
 app.MapControllers();
 

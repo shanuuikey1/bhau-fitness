@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
+import '../../../theme/widgets.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -31,25 +32,28 @@ class TrainersSection extends StatelessWidget {
               final t = trainers[i];
               return GestureDetector(
                 onTap: () => _showTrainerModal(context, t),
-                child: Container(
-                  decoration: BhauDecor.card(),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: BhauImage(url: t.image, height: double.infinity, radius: BorderRadius.zero)),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                            const SizedBox(height: 3),
-                            Text(t.spec, style: BhauText.mono(fontSize: 9.5)),
-                          ],
+                child: HoverScale(
+                  scale: 1.03,
+                  child: Container(
+                    decoration: BhauDecor.card(),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: BhauImage(url: t.image, height: double.infinity, radius: BorderRadius.zero, alignment: Alignment.topCenter)),
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                              const SizedBox(height: 3),
+                              Text(t.spec, style: BhauText.mono(fontSize: 9.5)),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );

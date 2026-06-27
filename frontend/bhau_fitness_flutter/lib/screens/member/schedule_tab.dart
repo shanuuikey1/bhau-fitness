@@ -4,6 +4,7 @@ import '../../models/booking.dart';
 import '../../models/class_session.dart';
 import '../../services/portal_service.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/responsive.dart';
 
 class ScheduleTab extends StatefulWidget {
   const ScheduleTab({super.key});
@@ -128,14 +129,24 @@ class _ScheduleTabState extends State<ScheduleTab> {
       onRefresh: _load,
       child: _classes.isEmpty
           ? ListView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.zero,
               children: const [
-                SizedBox(height: 80),
-                Center(child: Text("Couldn't load the schedule. Pull down to retry.", style: TextStyle(color: BhauColors.muted))),
+                ContentMaxWidth(
+                  maxWidth: 900,
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 80),
+                        Center(child: Text("Couldn't load the schedule. Pull down to retry.", style: TextStyle(color: BhauColors.muted))),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             )
           : ListView.separated(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               itemCount: _classes.length,
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
@@ -145,7 +156,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
                 final isFull = c.isFull;
                 final isActing = _actingClassId == c.id;
 
-                return Container(
+                final item = Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BhauDecor.card(border: booking != null ? BhauColors.cyan : null),
                   child: Row(
@@ -203,6 +214,14 @@ class _ScheduleTabState extends State<ScheduleTab> {
                                       child: const Text('Book'),
                                     ),
                     ],
+                  ),
+                );
+
+                return ContentMaxWidth(
+                  maxWidth: 900,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: item,
                   ),
                 );
               },

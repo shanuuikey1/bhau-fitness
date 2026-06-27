@@ -14,7 +14,7 @@ class BhauColors {
   static const bg3 = Color(0xFF181E26);
   static const ink = Color(0xFFF4F6F8);
   static const muted = Color(0xFFA8B0BC);
-  static const faint = Color(0xFF6B7480);
+  static const faint = Color(0xFF828C99); // Increased brightness from 0xFF6B7480 for WCAG AA contrast (5.5:1)
   static const line = Color(0xFF20262E);
   static const line2 = Color(0xFF2B323C);
   static const ok = Color(0xFF27D796);
@@ -35,7 +35,7 @@ class BhauText {
       GoogleFonts.anton(
         fontSize: fontSize,
         color: color,
-        height: height ?? 0.95,
+        height: height ?? 1.12, // Increased from 0.95 to prevent descender/ascender overlap when wrapped
         letterSpacing: 0.2,
       );
 
@@ -112,20 +112,22 @@ ThemeData buildBhauTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: BhauColors.bg2,
+      fillColor: Colors.white.withValues(alpha: 0.02),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: BhauColors.line),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: BhauColors.line),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: BhauColors.cyan, width: 1.5),
+        borderSide: const BorderSide(color: BhauColors.cyan, width: 1.2),
       ),
-      labelStyle: const TextStyle(color: BhauColors.muted),
+      labelStyle: const TextStyle(color: BhauColors.muted, fontSize: 13.5),
+      floatingLabelStyle: const TextStyle(color: BhauColors.cyan, fontWeight: FontWeight.w600),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
     ),
     // Buttons mirror the HTML's `.btn` class exactly: Inter at 700 weight /
     // 15px, 12px corner radius, 24px/14px padding — NOT the Anton display

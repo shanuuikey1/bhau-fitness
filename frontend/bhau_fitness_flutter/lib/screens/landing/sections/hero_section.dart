@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
 import '../../../theme/widgets.dart';
-import 'section_scaffold.dart';
 
 class HeroSection extends StatelessWidget {
   final VoidCallback onJoin;
@@ -96,40 +95,52 @@ class _HeroText extends StatelessWidget {
             shaderCallback: (bounds) => BhauColors.cyanLimeGradient.createShader(bounds),
             child: Text('MEETS LUXURY', style: BhauText.display(fontSize: 56, color: Colors.white)),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
           Text(
             'A premium fitness studio built for serious transformation — expert coaching, '
             'top-tier equipment, and a membership experience that feels like it.',
             style: BhauText.body(fontSize: 16),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 32),
           Wrap(
-            spacing: 14, runSpacing: 14,
+            spacing: 16, runSpacing: 16,
             children: [
-              SizedBox(
-                width: 240,
-                child: GradientButton(
-                  onPressed: onJoin,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Start Your Transformation'),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 16, color: BhauColors.bg),
-                    ],
+              HoverScale(
+                child: SizedBox(
+                  width: 240,
+                  child: GradientButton(
+                    onPressed: onJoin,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Start Your Transformation'),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, size: 16, color: BhauColors.bg),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              OutlinedButton(
-                onPressed: onExplore,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Explore Programs'),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 16),
-                  ],
+              HoverScale(
+                child: SizedBox(
+                  width: 240,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: onExplore,
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Explore Programs'),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward, size: 16),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -199,8 +210,7 @@ class _TickerBandState extends State<TickerBand> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  Widget _row() => Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _row() => Wrap(
         children: _items
             .expand((t) => [
                   Text(t, style: BhauText.display(fontSize: 20, color: BhauColors.faint)),
@@ -239,8 +249,7 @@ class _TickerBandState extends State<TickerBand> with SingleTickerProviderStateM
               );
             },
             child: IntrinsicWidth(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Wrap(
                 children: [_row(), _row()],
               ),
             ),

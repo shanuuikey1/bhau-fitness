@@ -90,7 +90,7 @@ class _MemberShellState extends State<MemberShell> {
               ],
             ),
             const VerticalDivider(width: 1, color: BhauColors.line),
-            Expanded(child: ContentMaxWidth(maxWidth: 900, child: body)),
+            Expanded(child: body),
           ],
         ),
       );

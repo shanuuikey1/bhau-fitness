@@ -55,9 +55,31 @@ class ApiService {
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return body;
     }
-    final message = (body is Map && body['error'] != null)
-        ? body['error'].toString()
-        : 'Request failed (${res.statusCode}).';
+    
+    String message = 'Request failed (${res.statusCode}).';
+    if (body is Map) {
+      if (body['error'] != null) {
+        message = body['error'].toString();
+      } else if (body['errors'] != null) {
+        final errs = body['errors'];
+        if (errs is Map) {
+          final messages = <String>[];
+          errs.forEach((key, value) {
+            if (value is List) {
+              messages.addAll(value.map((e) => e.toString()));
+            } else {
+              messages.add(value.toString());
+            }
+          });
+          if (messages.isNotEmpty) {
+            message = messages.join(' ');
+          }
+        }
+      } else if (body['title'] != null) {
+        message = body['title'].toString();
+      }
+    }
+    
     throw ApiException(res.statusCode, message);
   }
 

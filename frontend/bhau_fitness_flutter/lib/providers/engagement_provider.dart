@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/secure_storage.dart';
 
 /// Local (on-device) state for the gamification side of the engagement
 /// suite — habits, streak, points, and roadmap progress. None of this is
@@ -49,7 +49,7 @@ class EngagementProvider extends ChangeNotifier {
     {'name': 'Manish T.', 'points': 580},
   ];
 
-  SharedPreferences? _prefs;
+  final SecureStorage _secureStorage = SecureStorage();
   Map<String, bool> _habitsToday = {};
   int _manualPoints = 0;
   int _streakDays = 0;
@@ -110,13 +110,13 @@ class EngagementProvider extends ChangeNotifier {
       ];
 
   Future<void> load() async {
-    _prefs = await SharedPreferences.getInstance();
-    _manualPoints = _prefs!.getInt('eng_points') ?? 0;
-    _streakDays = _prefs!.getInt('eng_streak') ?? 0;
-    _lastActiveDate = _prefs!.getString('eng_last_active');
-    _hasGoal = _prefs!.getBool('eng_has_goal') ?? false;
-    _roadmapDone = (_prefs!.getStringList('eng_roadmap') ?? []).map(int.parse).toSet();
-    _weightEntries = (_prefs!.getStringList('eng_weights') ?? []).map((s) {
+    // SecureStorage does not require initialization
+    _manualPoints = await _secureStorage.readInt('eng_points') ?? 0;
+    _streakDays = await _secureStorage.readInt('eng_streak') ?? 0;
+    _lastActiveDate = await _secureStorage.read('eng_last_active');
+    _hasGoal = await _secureStorage.readBool('eng_has_goal') ?? false;
+    _roadmapDone = (await _secureStorage.readStringList('eng_roadmap')).map(int.parse).toSet();
+    _weightEntries = (await _secureStorage.readStringList('eng_weights')).map((s) {
       final parts = s.split('|');
       return MapEntry(DateTime.parse(parts[0]), double.parse(parts[1]));
     }).toList();
@@ -128,7 +128,7 @@ class EngagementProvider extends ChangeNotifier {
       // the HTML site's own localStorage-based streak counter.
       _habitsToday = {for (final k in _habitKeys) k: false};
     } else {
-      final stored = _prefs!.getStringList('eng_habits_$today') ?? [];
+      final stored = await _secureStorage.readStringList('eng_habits_$today');
       _habitsToday = {for (final k in _habitKeys) k: stored.contains(k)};
     }
     notifyListeners();
@@ -138,14 +138,14 @@ class EngagementProvider extends ChangeNotifier {
     final wasDone = _habitsToday[key] ?? false;
     _habitsToday[key] = !wasDone;
     final today = _todayKey();
-    await _prefs!.setStringList(
+    await _secureStorage.writeStringList(
       'eng_habits_$today',
       _habitsToday.entries.where((e) => e.value).map((e) => e.key).toList(),
     );
 
     if (!wasDone) {
       _manualPoints += 5;
-      await _prefs!.setInt('eng_points', _manualPoints);
+      await _secureStorage.writeInt('eng_points', _manualPoints);
     }
 
     final allDone = _habitsToday.values.every((v) => v);
@@ -159,8 +159,8 @@ class EngagementProvider extends ChangeNotifier {
     if (_lastActiveDate == today) return; // already counted today
     _streakDays += 1;
     _lastActiveDate = today;
-    await _prefs!.setInt('eng_streak', _streakDays);
-    await _prefs!.setString('eng_last_active', today);
+    await _secureStorage.writeInt('eng_streak', _streakDays);
+    await _secureStorage.write(key: 'eng_last_active', value: today);
   }
 
   Future<void> toggleRoadmapStep(int index) async {
@@ -169,16 +169,16 @@ class EngagementProvider extends ChangeNotifier {
     } else {
       _roadmapDone.add(index);
       _manualPoints += 20;
-      await _prefs!.setInt('eng_points', _manualPoints);
+      await _secureStorage.writeInt('eng_points', _manualPoints);
     }
-    await _prefs!.setStringList('eng_roadmap', _roadmapDone.map((i) => i.toString()).toList());
+    await _secureStorage.writeStringList('eng_roadmap', _roadmapDone.map((i) => i.toString()).toList());
     notifyListeners();
   }
 
   Future<void> addWeightEntry(double kg) async {
     final entry = MapEntry(DateTime.now(), kg);
     _weightEntries = [..._weightEntries, entry];
-    await _prefs!.setStringList(
+    await _secureStorage.writeStringList(
       'eng_weights',
       _weightEntries.map((e) => '${e.key.toIso8601String()}|${e.value}').toList(),
     );

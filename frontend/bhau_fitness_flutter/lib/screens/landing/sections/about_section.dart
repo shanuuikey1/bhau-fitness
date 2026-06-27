@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
+import '../../../theme/widgets.dart';
 import 'section_scaffold.dart';
 
 class AboutSection extends StatelessWidget {
@@ -24,18 +25,21 @@ class AboutSection extends StatelessWidget {
       crossAxisSpacing: 14,
       childAspectRatio: isDesktop ? 3.6 : 1.4,
       children: _features
-          .map((f) => Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BhauDecor.card(radius: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.bolt, color: BhauColors.cyan, size: 22),
-                    const SizedBox(height: 10),
-                    Text(f[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(f[1], style: BhauText.body(fontSize: 11.5, color: BhauColors.faint)),
-                  ],
+          .map((f) => HoverScale(
+                scale: 1.03,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BhauDecor.card(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.bolt, color: BhauColors.cyan, size: 22),
+                      const SizedBox(height: 10),
+                      Text(f[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text(f[1], style: BhauText.body(fontSize: 11.5, color: BhauColors.faint)),
+                    ],
+                  ),
                 ),
               ))
           .toList(),
@@ -68,24 +72,27 @@ class AboutSection extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: const BhauImage(
-                        url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80',
+                        url: 'assets/images/about_1.png',
                         height: 280,
+                        alignment: Alignment.topCenter,
                       ),
                     ),
                     const SizedBox(height: 18),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: const BhauImage(
-                        url: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=900&q=80',
+                        url: 'assets/images/about_2.png',
                         height: 280,
+                        alignment: Alignment.topCenter,
                       ),
                     ),
                     const SizedBox(height: 18),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(18),
                       child: const BhauImage(
-                        url: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80',
+                        url: 'assets/images/about_3.png',
                         height: 280,
+                        alignment: Alignment.topCenter,
                       ),
                     ),
                   ],
@@ -100,8 +107,9 @@ class AboutSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const BhauImage(
-                  url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80',
+                  url: 'assets/images/about_1.png',
                   height: 220,
+                  alignment: Alignment.topCenter,
                 ),
                 const SizedBox(height: 26),
                 textColumn,

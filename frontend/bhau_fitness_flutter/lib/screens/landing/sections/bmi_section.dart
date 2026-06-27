@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/widgets.dart';
 import 'section_scaffold.dart';
 
 class BmiSection extends StatefulWidget {
@@ -163,10 +164,13 @@ class _BmiSectionState extends State<BmiSection> {
                     onChanged: (v) => setState(() => _activity = v ?? 1.55),
                   ),
                   const SizedBox(height: 18),
-                  ElevatedButton(
-                    onPressed: _calculate,
-                    style: ElevatedButton.styleFrom(backgroundColor: BhauColors.cyan),
-                    child: const Text('Calculate My Metrics'),
+                  HoverScale(
+                    scale: 1.05,
+                    child: ElevatedButton(
+                      onPressed: _calculate,
+                      style: ElevatedButton.styleFrom(backgroundColor: BhauColors.cyan),
+                      child: const Text('Calculate My Metrics'),
+                    ),
                   ),
                   if (_bmi != null) ...[
                     const SizedBox(height: 22),
@@ -231,20 +235,23 @@ class _BmiSectionState extends State<BmiSection> {
   }
 
   Widget _goalCard(String label, String kcal, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(label, style: BhauText.mono(fontSize: 9.5, color: color)),
-          const SizedBox(height: 4),
-          Text(kcal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Text('kcal/day', style: BhauText.body(fontSize: 9, color: BhauColors.faint)),
-        ],
+    return HoverScale(
+      scale: 1.03,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            Text(label, style: BhauText.mono(fontSize: 9.5, color: color)),
+            const SizedBox(height: 4),
+            Text(kcal, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('kcal/day', style: BhauText.body(fontSize: 9, color: BhauColors.faint)),
+          ],
+        ),
       ),
     );
   }

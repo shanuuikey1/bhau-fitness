@@ -10,6 +10,7 @@ import '../../providers/engagement_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/portal_service.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/responsive.dart';
 
 /// Exercise names grouped by body part for the workout-log autocomplete —
 /// same categorized list as the HTML's `EXERCISES` map.
@@ -134,26 +135,37 @@ class _DashboardTabState extends State<DashboardTab> {
       child: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.zero,
               children: [
-                Text('Welcome back, $name', style: BhauText.display(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text("Here's where things stand today.", style: BhauText.body()),
-                const SizedBox(height: 20),
-                _membership != null ? _passCard(_membership!, streak) : _noMembershipCard(),
-                const SizedBox(height: 20),
-                _waterCard(),
-                const SizedBox(height: 20),
-                _recentWorkoutsCard(),
-                if (_membership == null) ...[
-                  const SizedBox(height: 28),
-                  Text('Choose Your Plan', style: BhauText.display(fontSize: 18)),
-                  const SizedBox(height: 12),
-                  ..._plans.map((p) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _planCard(p),
-                      )),
-                ],
+                ContentMaxWidth(
+                  maxWidth: 900,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('Welcome back, $name', style: BhauText.display(fontSize: 24)),
+                        const SizedBox(height: 4),
+                        Text("Here's where things stand today.", style: BhauText.body()),
+                        const SizedBox(height: 20),
+                        _membership != null ? _passCard(_membership!, streak) : _noMembershipCard(),
+                        const SizedBox(height: 20),
+                        _waterCard(),
+                        const SizedBox(height: 20),
+                        _recentWorkoutsCard(),
+                        if (_membership == null) ...[
+                          const SizedBox(height: 28),
+                          Text('Choose Your Plan', style: BhauText.display(fontSize: 18)),
+                          const SizedBox(height: 12),
+                          ..._plans.map((p) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _planCard(p),
+                              )),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
     );

@@ -7,6 +7,7 @@ import '../theme/widgets.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import 'member/member_shell.dart';
+import 'landing/landing_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,6 +42,48 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Widget _backButton() {
+    return Positioned(
+      top: 16,
+      left: 16,
+      child: SafeArea(
+        child: HoverScale(
+          scale: 1.08,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: BhauColors.bg3.withValues(alpha: 0.6),
+              shape: BoxShape.circle,
+              border: Border.all(color: BhauColors.line2),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => const LandingScreen()),
+                    );
+                  }
+                },
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: BhauColors.ink,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -51,16 +94,36 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!isDesktop) {
       return Scaffold(
         backgroundColor: BhauColors.bg,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(28),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 440),
-                child: form,
+        body: Stack(
+          children: [
+            // Ambient radial background glow
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 1.1,
+                    colors: [
+                      BhauColors.lime.withValues(alpha: 0.06),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  child: GlowCard(
+                    maxWidth: 440,
+                    child: form,
+                  ),
+                ),
+              ),
+            ),
+            _backButton(),
+          ],
         ),
       );
     }
@@ -74,6 +137,21 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           const Positioned.fill(child: ColoredBox(color: BhauColors.bg)),
+          // Ambient radial background glow behind the login card
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.6, -0.1),
+                  radius: 1.2,
+                  colors: [
+                    BhauColors.lime.withValues(alpha: 0.07),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Left photo panel, clipped to the chevron shape.
           Positioned(
             left: 0,
@@ -106,17 +184,20 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 460),
+                child: GlowCard(
+                  maxWidth: 460,
                   child: form,
                 ),
               ),
             ),
           ),
+          _backButton(),
         ],
       ),
     );
   }
+
+
 
   Widget _form(AuthProvider auth) {
     return Form(
@@ -125,22 +206,33 @@ class _LoginScreenState extends State<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          const HexagonLogo(size: 64),
+          const SizedBox(height: 12),
+          const Center(child: BrandWordmark(fontSize: 30)),
+          const SizedBox(height: 4),
           Center(
-            child: Image.asset('assets/images/brand_logo.png', height: 76),
+            child: Text(
+              'STRONGER EVERYDAY',
+              style: BhauText.mono(
+                fontSize: 11,
+                color: BhauColors.faint,
+                letterSpacing: 3.5,
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
-          const Center(child: BrandWordmark(fontSize: 34)),
-          const SizedBox(height: 6),
-          Center(
-            child: Text('STRONGER EVERYDAY',
-                style: BhauText.mono(fontSize: 12, color: BhauColors.faint, letterSpacing: 4)),
+          const SizedBox(height: 24),
+          Text(
+            'Welcome Back',
+            textAlign: TextAlign.center,
+            style: BhauText.display(fontSize: 22),
           ),
-          const SizedBox(height: 28),
-          Text('Welcome back', textAlign: TextAlign.center, style: BhauText.display(fontSize: 24)),
           const SizedBox(height: 6),
-          Text('Log in to continue your fitness journey',
-              textAlign: TextAlign.center, style: BhauText.body(fontSize: 14)),
-          const SizedBox(height: 28),
+          Text(
+            'Log in to continue your fitness journey',
+            textAlign: TextAlign.center,
+            style: BhauText.body(fontSize: 13.5),
+          ),
+          const SizedBox(height: 24),
           if (auth.errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
@@ -149,18 +241,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: BhauColors.bad.withValues(alpha: 0.3)),
               ),
-              child: Text(auth.errorMessage!, style: const TextStyle(color: BhauColors.bad)),
+              child: Text(
+                auth.errorMessage!,
+                style: const TextStyle(color: BhauColors.bad, fontSize: 13),
+              ),
             ),
             const SizedBox(height: 16),
           ],
           TextFormField(
             controller: _emailCtrl,
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.text,
             decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.mail_outline, color: BhauColors.faint),
+              labelText: 'Email or Mobile Number',
+              prefixIcon: Icon(Icons.person_outline, color: BhauColors.faint, size: 20),
             ),
-            validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) {
+                return 'Enter email or mobile number';
+              }
+              final isEmail = v.contains('@');
+              final isPhone = RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v.trim());
+              if (!isEmail && !isPhone) {
+                return 'Enter a valid email or mobile number';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -168,10 +273,13 @@ class _LoginScreenState extends State<LoginScreen> {
             obscureText: _obscure,
             decoration: InputDecoration(
               labelText: 'Password',
-              prefixIcon: const Icon(Icons.lock_outline, color: BhauColors.faint),
+              prefixIcon: const Icon(Icons.lock_outline, color: BhauColors.faint, size: 20),
               suffixIcon: IconButton(
-                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility,
-                    color: BhauColors.faint),
+                icon: Icon(
+                  _obscure ? Icons.visibility_off : Icons.visibility,
+                  color: BhauColors.faint,
+                  size: 20,
+                ),
                 onPressed: () => setState(() => _obscure = !_obscure),
               ),
             ),
@@ -179,48 +287,64 @@ class _LoginScreenState extends State<LoginScreen> {
                 (v == null || v.length < 6) ? 'Password must be at least 6 characters' : null,
           ),
           const SizedBox(height: 24),
-          GradientButton(
-            onPressed: auth.isLoading ? null : _submit,
-            child: auth.isLoading
-                ? const SizedBox(
-                    height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: BhauColors.bg))
-                : const Text('Log In'),
+          HoverScale(
+            scale: 1.04,
+            child: GradientButton(
+              gradient: BhauColors.cyanLimeGradient,
+              onPressed: auth.isLoading ? null : _submit,
+              child: auth.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: BhauColors.bg,
+                      ),
+                    )
+                  : const Text('Log In'),
+            ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 16),
           Center(
             child: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
               ),
-              child: Text('Forgot password?',
-                  style: TextStyle(
-                    color: BhauColors.lime,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    decoration: TextDecoration.underline,
-                    decorationColor: BhauColors.lime,
-                  )),
+              child: const Text(
+                'Forgot password?',
+                style: TextStyle(
+                  color: BhauColors.lime,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  decoration: TextDecoration.underline,
+                  decorationColor: BhauColors.lime,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Center(
             child: Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text("New here?  ", style: BhauText.body(fontSize: 14)),
+                Text("New here?  ", style: BhauText.body(fontSize: 13.5)),
                 GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Create a free account',
-                          style: TextStyle(
-                              color: BhauColors.lime, fontWeight: FontWeight.w700, fontSize: 14)),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward, size: 16, color: BhauColors.lime),
+                      Text(
+                        'Create a free account',
+                        style: TextStyle(
+                          color: BhauColors.lime,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward, size: 14, color: BhauColors.lime),
                     ],
                   ),
                 ),

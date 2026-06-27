@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/api_service.dart';
 
 /// Canned/rule-based responder — no live LLM integration is in scope here,
 /// same spirit as the HTML site's "AI Coach" chips (nutrition/workout/recovery
@@ -25,8 +26,10 @@ class _AiCoachPaneState extends State<AiCoachPane> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<_ChatMsg> _messages = [];
+  final _api = ApiService();
   int? _tdee;
   bool _greeted = false;
+  bool _isLoading = false;
 
   // Same three full pre-written questions as the HTML's `.ai-chips`
   // (short button labels, full question text sent as the chat message).
@@ -66,42 +69,64 @@ class _AiCoachPaneState extends State<AiCoachPane> {
     }
   }
 
-  String _respond(String input) {
-    final q = input.toLowerCase();
-    if (q.contains('nutrition') || q.contains('diet') || q.contains('eat') || q.contains('protein') || q.contains('meal')) {
-      final tdeeNote = _tdee != null ? ' Based on your BMI tool result, that puts your maintenance around $_tdee kcal/day.' : '';
-      return 'Aim for ~1.6–2g of protein per kg of bodyweight, prioritize whole foods, '
-          "and don't fear carbs around your training sessions — they fuel performance.$tdeeNote";
+  Future<void> _send(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty || _isLoading) return;
+
+    _inputCtrl.clear();
+
+    setState(() {
+      _messages.add(_ChatMsg(trimmed, true));
+      _isLoading = true;
+    });
+
+    _scrollToBottom();
+
+    try {
+      final goal = context.read<AuthProvider>().profile?.goal ?? 'muscle';
+      final response = await _api.post(
+        '/aicoach/chat',
+        {
+          'message': trimmed,
+          'goal': goal,
+          'tdee': _tdee,
+        },
+        auth: true,
+      );
+
+      final reply = response['response'] as String? ?? 'No response from coach.';
+      if (mounted) {
+        setState(() {
+          _messages.add(_ChatMsg(reply, false));
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _messages.add(_ChatMsg(
+            "Connection to coach lost. Please try again.",
+            false,
+          ));
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
     }
-    if (q.contains('workout') || q.contains('exercise') || q.contains('train') || q.contains('home')) {
-      return "Progressive overload is king — add a little weight or a rep each week. "
-          'Pair compound lifts (squat, deadlift, bench, row) with 2-3 accessory movements. '
-          'For a quick home session: 4 rounds of squats, push-ups, mountain climbers and plank, 40s on/20s off.';
-    }
-    if (q.contains('recover') || q.contains('sore') || q.contains('rest') || q.contains('sleep')) {
-      return 'Recovery is where the gains actually happen — aim for 7-9 hours of sleep, '
-          'stay hydrated, and take at least one full rest day between hard sessions on the same muscle group.';
-    }
-    if (q.contains('motivat') || q.contains('tired') || q.contains('lazy')) {
-      return "Showing up on the hard days is the whole game. You don't need to feel motivated — "
-          'just get through the warm-up, momentum usually takes care of the rest.';
-    }
-    return "My AI brain isn't wired up on this server yet. General tip: stay consistent, prioritise protein "
-        'and sleep, and progress your weights weekly. For a personalised plan, tap WhatsApp and a coach will '
-        'help you directly.';
   }
 
-  void _send(String text) {
-    if (text.trim().isEmpty) return;
-    setState(() {
-      _messages.add(_ChatMsg(text.trim(), true));
-      _messages.add(_ChatMsg(_respond(text), false));
-    });
-    _inputCtrl.clear();
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
-        _scrollCtrl.animateTo(_scrollCtrl.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -118,77 +143,114 @@ class _AiCoachPaneState extends State<AiCoachPane> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-      children: [
-        Wrap(
-          spacing: 8,
-          children: _chips
-              .map((c) => ActionChip(
-                    label: Text(c.$1, style: const TextStyle(fontSize: 12)),
-                    backgroundColor: BhauColors.bg2,
-                    side: const BorderSide(color: BhauColors.line),
-                    onPressed: () => _send(c.$2),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 14),
-        Expanded(
-          child: Container(
-            decoration: BhauDecor.card(radius: 14),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollCtrl,
-                    padding: const EdgeInsets.all(14),
-                    itemCount: _messages.length,
-                    itemBuilder: (_, i) {
-                      final m = _messages[i];
-                      return Align(
-                        alignment: m.isUser ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-                          decoration: BoxDecoration(
-                            color: m.isUser ? BhauColors.cyan : BhauColors.bg3,
-                            borderRadius: BorderRadius.circular(14),
+        children: [
+          Wrap(
+            spacing: 8,
+            children: _chips
+                .map((c) => ActionChip(
+                      label: Text(c.$1, style: const TextStyle(fontSize: 12)),
+                      backgroundColor: BhauColors.bg2,
+                      side: const BorderSide(color: BhauColors.line),
+                      onPressed: () => _send(c.$2),
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: Container(
+              decoration: BhauDecor.card(radius: 14),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollCtrl,
+                      padding: const EdgeInsets.all(14),
+                      itemCount: _messages.length + (_isLoading ? 1 : 0),
+                      itemBuilder: (_, i) {
+                        if (i == _messages.length) {
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+                              decoration: BoxDecoration(
+                                color: BhauColors.bg3,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(BhauColors.cyan),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Typing...",
+                                    style: TextStyle(
+                                      color: BhauColors.ink.withOpacity(0.6),
+                                      fontSize: 13,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        final m = _messages[i];
+                        return Align(
+                          alignment: m.isUser ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+                            decoration: BoxDecoration(
+                              color: m.isUser ? BhauColors.cyan : BhauColors.bg3,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Text(m.text,
+                                style: TextStyle(
+                                  color: m.isUser ? BhauColors.bg : BhauColors.ink,
+                                  fontSize: 13.5,
+                                  fontWeight: m.isUser ? FontWeight.w600 : FontWeight.normal,
+                                )),
                           ),
-                          child: Text(m.text,
-                              style: TextStyle(
-                                color: m.isUser ? BhauColors.bg : BhauColors.ink,
-                                fontSize: 13.5,
-                                fontWeight: m.isUser ? FontWeight.w600 : FontWeight.normal,
-                              )),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: BhauColors.line))),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _inputCtrl,
-                          decoration: const InputDecoration(hintText: 'Ask your coach...'),
-                          onSubmitted: _send,
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(border: Border(top: BorderSide(color: BhauColors.line))),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _inputCtrl,
+                            decoration: const InputDecoration(hintText: 'Ask your coach...'),
+                            onSubmitted: _send,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.send, color: BhauColors.cyan),
-                        onPressed: () => _send(_inputCtrl.text),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: BhauColors.cyan),
+                          onPressed: () => _send(_inputCtrl.text),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }

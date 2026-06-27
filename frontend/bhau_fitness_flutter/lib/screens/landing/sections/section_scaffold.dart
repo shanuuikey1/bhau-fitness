@@ -13,14 +13,14 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 30),
+      padding: const EdgeInsets.only(bottom: 32),
       child: Column(
         children: [
           Text(eyebrow, style: BhauText.eyebrow(), textAlign: TextAlign.center),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(title, style: BhauText.display(fontSize: 32), textAlign: TextAlign.center),
           if (subtitle != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
               child: Text(subtitle!, style: BhauText.body(fontSize: 15), textAlign: TextAlign.center),
@@ -56,12 +56,19 @@ class BhauImage extends StatelessWidget {
   final String url;
   final double? height;
   final BorderRadius? radius;
-  const BhauImage({super.key, required this.url, this.height, this.radius});
+  final Alignment alignment;
+  const BhauImage({
+    super.key,
+    required this.url,
+    this.height,
+    this.radius,
+    this.alignment = Alignment.center,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: radius ?? BorderRadius.circular(14),
+      borderRadius: radius ?? BorderRadius.circular(18),
       child: Container(
         height: height,
         decoration: const BoxDecoration(
@@ -71,17 +78,29 @@ class BhauImage extends StatelessWidget {
             colors: [Color(0xFF13202A), Color(0xFF0C1116)],
           ),
         ),
-        child: Image.network(
-          url,
-          height: height,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) =>
-              progress == null ? child : const SizedBox.shrink(),
-          errorBuilder: (_, __, ___) => const Center(
-            child: Icon(Icons.image_not_supported_outlined, color: BhauColors.faint, size: 28),
-          ),
-        ),
+        child: url.startsWith('http')
+            ? Image.network(
+                url,
+                height: height,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                alignment: alignment,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : const SizedBox.shrink(),
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Icon(Icons.image_not_supported_outlined, color: BhauColors.faint, size: 28),
+                ),
+              )
+            : Image.asset(
+                url,
+                height: height,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                alignment: alignment,
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Icon(Icons.image_not_supported_outlined, color: BhauColors.faint, size: 28),
+                ),
+              ),
       ),
     );
   }

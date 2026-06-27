@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../models/plan.dart';
 import '../../services/auth_service.dart';
 import '../../services/external_links.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/responsive.dart';
+import '../../theme/widgets.dart';
 import '../login_screen.dart';
 import '../register_screen.dart';
 import 'sections/about_section.dart';
@@ -39,7 +40,7 @@ class _LandingScreenState extends State<LandingScreen> {
   final _trainersKey = GlobalKey();
   final _faqKey = GlobalKey();
   bool _scrolled = false;
-  bool _showCookieBanner = false;
+  
   Plan? _cheapestPlan;
 
   // Rotating "social proof" toast — same 7 demo events/timings as the HTML's
@@ -64,7 +65,7 @@ class _LandingScreenState extends State<LandingScreen> {
       final scrolled = _scrollCtrl.offset > 12;
       if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
     });
-    _checkCookieConsent();
+    
     _loadCheapestPlan();
     _toastTimer = Timer(const Duration(seconds: 14), _cycleSocialProof);
   }
@@ -82,19 +83,7 @@ class _LandingScreenState extends State<LandingScreen> {
     _toastTimer = Timer(const Duration(seconds: 32), _cycleSocialProof);
   }
 
-  Future<void> _checkCookieConsent() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    if (prefs.getBool('bhau_cookie_accepted') != true) {
-      setState(() => _showCookieBanner = true);
-    }
-  }
-
-  Future<void> _acceptCookies() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('bhau_cookie_accepted', true);
-    if (mounted) setState(() => _showCookieBanner = false);
-  }
+  
 
   Future<void> _loadCheapestPlan() async {
     try {
@@ -127,9 +116,9 @@ class _LandingScreenState extends State<LandingScreen> {
   void _scrollToTop() => _scrollCtrl.animateTo(0,
       duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
 
-  Widget _navLink(String label, GlobalKey key) => TextButton(
+  Widget _navLink(String label, GlobalKey key) => _HoverColorTextButton(
+        label: label,
         onPressed: () => _scrollTo(key),
-        child: Text(label, style: const TextStyle(color: BhauColors.muted, fontSize: 13.5)),
       );
 
   @override
@@ -196,12 +185,7 @@ class _LandingScreenState extends State<LandingScreen> {
               child: ContentMaxWidth(
                 child: Row(
                 children: [
-                  Container(
-                    width: 30, height: 30,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), gradient: BhauColors.cyanLimeGradient),
-                    alignment: Alignment.center,
-                    child: const Text('B', style: TextStyle(color: BhauColors.bg, fontWeight: FontWeight.w900)),
-                  ),
+                  const HexagonLogo(size: 32),
                   const SizedBox(width: 10),
                   Text('BHAU FITNESS', style: BhauText.display(fontSize: 16)),
                   const Spacer(),
@@ -225,17 +209,23 @@ class _LandingScreenState extends State<LandingScreen> {
                         PopupMenuItem(value: _faqKey, child: const Text('FAQ')),
                       ],
                     ),
-                  TextButton(
+                  _HoverColorTextButton(
+                    label: 'Log In',
                     onPressed: _goLogin,
-                    child: const Text('Log In', style: TextStyle(color: BhauColors.ink)),
+                    baseColor: BhauColors.ink,
+                    fontWeight: FontWeight.bold,
                   ),
-                  ElevatedButton(
-                    onPressed: _goRegister,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: BhauColors.lime,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  const SizedBox(width: 8),
+                  HoverScale(
+                    scale: 1.05,
+                    child: ElevatedButton(
+                      onPressed: _goRegister,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: BhauColors.lime,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      child: const Text('Join Now', style: TextStyle(fontSize: 13)),
                     ),
-                    child: const Text('Join Now', style: TextStyle(fontSize: 13)),
                   ),
                 ],
                 ),
@@ -251,12 +241,15 @@ class _LandingScreenState extends State<LandingScreen> {
               left: 18,
               bottom: !Breakpoints.isTablet(context) && _cheapestPlan != null ? 78 : 18,
               child: SafeArea(
-                child: FloatingActionButton.small(
-                  onPressed: _scrollToTop,
-                  backgroundColor: BhauColors.bg2,
-                  foregroundColor: BhauColors.muted,
-                  tooltip: 'Back to top',
-                  child: const Icon(Icons.arrow_upward),
+                child: HoverScale(
+                  scale: 1.08,
+                  child: FloatingActionButton.small(
+                    onPressed: _scrollToTop,
+                    backgroundColor: BhauColors.bg2,
+                    foregroundColor: BhauColors.muted,
+                    tooltip: 'Back to top',
+                    child: const Icon(Icons.arrow_upward),
+                  ),
                 ),
               ),
             ),
@@ -277,16 +270,7 @@ class _LandingScreenState extends State<LandingScreen> {
                 child: _StickyMobileCta(plan: _cheapestPlan!, onJoin: _goRegister),
               ),
             ),
-          if (_showCookieBanner)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: !Breakpoints.isTablet(context) && _cheapestPlan != null ? 64 : 0,
-              child: SafeArea(
-                top: false,
-                child: _CookieBanner(onAccept: _acceptCookies),
-              ),
-            ),
+          
           if (_visibleToast != null)
             Positioned(
               left: 28,
@@ -308,20 +292,29 @@ class _WhatsAppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
-        child: Container(
-          width: 52, height: 52,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(colors: [Color(0xFF25D366), Color(0xFF128C7E)]),
-            boxShadow: [BoxShadow(color: const Color(0xFF25D366).withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 4))],
+    return HoverScale(
+      scale: 1.08,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: 52, height: 52,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: const Color(0xFF25D366).withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 4))],
+            ),
+            alignment: Alignment.center,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/whatsapp_logo.png',
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          alignment: Alignment.center,
-          child: const Icon(Icons.chat, color: Colors.white, size: 26),
         ),
       ),
     );
@@ -377,41 +370,7 @@ class _StickyMobileCta extends StatelessWidget {
   }
 }
 
-/// Mirrors the HTML's `#cookieBanner` — dismiss-once, persisted locally.
-class _CookieBanner extends StatelessWidget {
-  const _CookieBanner({required this.onAccept});
-  final VoidCallback onAccept;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: const BoxDecoration(
-        color: BhauColors.bg1,
-        border: Border(top: BorderSide(color: BhauColors.line)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'We use cookies to improve your experience on BHAU FITNESS. By continuing, you agree to our use of cookies.',
-              style: BhauText.body(fontSize: 12.5, color: BhauColors.muted),
-            ),
-          ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: onAccept,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: BhauColors.cyan,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: const Text('Accept', style: TextStyle(fontSize: 12.5)),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// Mirrors the HTML's `.sp-toast` — a tasteful, infrequent recent-activity
 /// notification. Same 7 demo events/timing as the HTML's `SP` array.
@@ -474,6 +433,56 @@ class _SocialProofToast extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HoverColorTextButton extends StatefulWidget {
+  const _HoverColorTextButton({
+    required this.label,
+    required this.onPressed,
+    this.baseColor = BhauColors.muted,
+    this.hoverColor = BhauColors.cyan,
+    this.fontSize = 13.5,
+    this.fontWeight = FontWeight.w500,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  final Color baseColor;
+  final Color hoverColor;
+  final double fontSize;
+  final FontWeight fontWeight;
+
+  @override
+  State<_HoverColorTextButton> createState() => _HoverColorTextButtonState();
+}
+
+class _HoverColorTextButtonState extends State<_HoverColorTextButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: TextButton(
+        onPressed: widget.onPressed,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 150),
+          style: TextStyle(
+            color: _isHovered ? widget.hoverColor : widget.baseColor,
+            fontSize: widget.fontSize,
+            fontWeight: widget.fontWeight,
+          ),
+          child: Text(widget.label),
+        ),
       ),
     );
   }
