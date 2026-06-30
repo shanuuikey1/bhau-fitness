@@ -91,6 +91,29 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    // Remove loading screen when the first frame is rendered
+    window.addEventListener('flutter-first-frame', function() {
+      var loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.display = 'none';
+        loading.remove();
+      }
+    });
+
+    // Fallback: If event doesn't fire, clean up when flutter-view is injected
+    var checkExist = setInterval(function() {
+      var flutterView = document.querySelector('flutter-view') || document.querySelector('flt-glass-pane');
+      if (flutterView) {
+        var loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.display = 'none';
+          loading.remove();
+        }
+        clearInterval(checkExist);
+      }
+    }, 100);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
