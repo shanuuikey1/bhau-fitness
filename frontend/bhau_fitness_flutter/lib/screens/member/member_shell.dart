@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/responsive.dart';
 import '../admin/admin_shell.dart';
@@ -8,6 +9,7 @@ import '../landing/landing_screen.dart';
 import '../profile_screen.dart';
 import 'dashboard_tab.dart';
 import 'engagement_tab.dart';
+import 'notifications_screen.dart';
 import 'schedule_tab.dart';
 
 /// Replaces the old single-screen HomeScreen — the logged-in member's home,
@@ -63,6 +65,47 @@ class _MemberShellState extends State<MemberShell> {
                     MaterialPageRoute(builder: (_) => const AdminShell()),
                   ),
                 ),
+              Consumer<NotificationProvider>(
+                builder: (context, provider, _) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                        ),
+                      ),
+                      if (provider.unreadCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 14,
+                              minHeight: 14,
+                            ),
+                            child: Text(
+                              '${provider.unreadCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
               IconButton(icon: const Icon(Icons.logout), onPressed: _signOut),
             ],
           )

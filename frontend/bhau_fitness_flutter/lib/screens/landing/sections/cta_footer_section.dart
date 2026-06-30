@@ -3,6 +3,8 @@ import '../../../services/external_links.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
 import '../../../theme/widgets.dart';
+import '../../../theme/animations.dart';
+import '../../../brand_config.dart';
 
 class CtaSection extends StatelessWidget {
   final VoidCallback onJoin;
@@ -10,7 +12,8 @@ class CtaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return FadeSlideIn(
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
       child: ContentMaxWidth(
         maxWidth: 900,
@@ -27,7 +30,12 @@ class CtaSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text('START YOUR\nTRANSFORMATION', textAlign: TextAlign.center, style: BhauText.display(fontSize: 30)),
+            ShaderMask(
+              shaderCallback: (b) => BhauColors.cyanLimeGradient.createShader(b),
+              child: Text('START YOUR\nTRANSFORMATION',
+                  textAlign: TextAlign.center,
+                  style: BhauText.display(fontSize: 30, color: Colors.white)),
+            ),
             const SizedBox(height: 16),
             Text(
               'Join hundreds of members who stopped waiting for "someday" — your first class is on us.',
@@ -37,16 +45,21 @@ class CtaSection extends StatelessWidget {
             const SizedBox(height: 32),
             HoverScale(
               scale: 1.05,
-              child: ElevatedButton(
-                onPressed: onJoin,
-                style: ElevatedButton.styleFrom(backgroundColor: BhauColors.lime, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-                child: const Text('Join BHAU Fitness'),
+              child: ShimmerSweep(
+                child: ElevatedButton(
+                  onPressed: onJoin,
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: BhauColors.lime,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
+                  child: Text(activeTenant.ctaJoinLabel),
+                ),
               ),
             ),
           ],
         ),
         ),
       ),
+    ),
     );
   }
 }
@@ -56,32 +69,20 @@ class CtaSection extends StatelessWidget {
 class _OpenNowBadge extends StatelessWidget {
   const _OpenNowBadge();
 
-  bool get _isOpen {
-    final now = DateTime.now();
-    if (now.weekday == DateTime.sunday) return false;
-    return now.hour >= 5 && now.hour < 23;
-  }
+  bool get _isOpen => activeTenant.isOpenNow;
 
   @override
   Widget build(BuildContext context) {
     final open = _isOpen;
     final color = open ? BhauColors.ok : BhauColors.bad;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 8),
-          Text(open ? 'Open now' : 'Closed',
-              style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12)),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PulsingDot(color: color, size: 8),
+        const SizedBox(width: 8),
+        Text(open ? 'Open now' : 'Closed',
+            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12)),
+      ],
     );
   }
 }
@@ -99,12 +100,12 @@ class FooterSection extends StatelessWidget {
           children: [
             const HexagonLogo(size: 32),
             const SizedBox(width: 10),
-            Text('BHAU FITNESS', style: BhauText.display(fontSize: 17)),
+            Text(activeTenant.brandName, style: BhauText.display(fontSize: 17)),
           ],
         ),
         const SizedBox(height: 14),
         Text(
-          'Premium fitness studio in Parasia, Chhindwara. Where strength meets luxury.',
+          'Premium fitness studio in ${activeTenant.locationEyebrow}. ${activeTenant.tagline.toLowerCase()}.',
           style: BhauText.body(fontSize: 12.5, color: BhauColors.faint),
         ),
       ],
@@ -114,9 +115,9 @@ class FooterSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('PARASIA, CHHINDWARA, MADHYA PRADESH', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
+        Text(activeTenant.address, style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
         const SizedBox(height: 6),
-        Text('MON–SAT · 5AM – 11PM', style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
+        Text(activeTenant.hoursLabel, style: BhauText.mono(fontSize: 10.5, color: BhauColors.faint)),
         const SizedBox(height: 12),
         const _OpenNowBadge(),
       ],
@@ -163,7 +164,7 @@ class FooterSection extends StatelessWidget {
             const SizedBox(height: 22),
             const Divider(color: BhauColors.line),
             const SizedBox(height: 14),
-            Text('© ${DateTime.now().year} BHAU FITNESS. All rights reserved.',
+            Text(activeTenant.copyrightLine,
                 style: BhauText.body(fontSize: 11, color: BhauColors.faint)),
           ],
         ),
@@ -215,7 +216,7 @@ class _MapCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.location_on, color: BhauColors.lime, size: 16),
                       const SizedBox(width: 6),
-                      Text('BHAU FITNESS · Parasia — tap to open in Maps',
+                      Text(activeTenant.mapLabel,
                           style: BhauText.body(fontSize: 11.5, color: BhauColors.ink)),
                     ],
                   ),

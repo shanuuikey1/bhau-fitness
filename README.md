@@ -1,152 +1,154 @@
-# BHAU FITNESS — Flutter + ASP.NET Core + MSSQL
+# BHAU FITNESS — Enterprise-Grade Full-Stack SaaS Platform
 
-A from-scratch foundation: **auth + core membership CRUD**, in a genuinely different stack
-from the live Supabase/Vercel web app — built for a freelance portfolio.
+BHAU FITNESS is a premium, high-performance, multi-tenant fitness SaaS platform designed for modern gyms. It features a cross-platform **Flutter** frontend (Web & Android APK) and a robust **ASP.NET Core 10** Web API backend backed by **SQL Server** and **PostgreSQL**.
 
-```
-backend/BhauFitnessApi/      ASP.NET Core 8 Web API + EF Core + SQL Server
-frontend/bhau_fitness_flutter/   Flutter app (Provider state management)
-```
-
-## ⚠️ Read this first
-
-Everything in this folder was written carefully but **never compiled or run** — my
-sandbox can't reach the .NET or Flutter SDK download servers, so unlike the web app
-earlier (where I validated every change with `node --check`), this code hasn't been
-through that safety net. The architecture and logic are sound and I cross-checked every
-field name between the C# DTOs and Dart models mechanically (zero mismatches), but treat
-the first build as a real "let's see what comes up" — likely a missing NuGet package
-version or a small typo, not a structural problem. Tell me the exact error and I'll fix it
-fast.
-
-## What's included (and what isn't)
-
-**Included:** register, login (JWT), view/edit profile, list plans, join a plan, view
-current membership status.
-
-**Not included yet** (this was scoped as a foundation, not full feature parity with the
-web app): admin panel, AI coach, WhatsApp lead notifications, BMI calculator, workout
-planner, engagement suite (badges/streaks/leaderboard), password reset emails. Ask for
-any of these next and I'll build them on this same foundation.
+The application is architected for high security, operational excellence, and seamless user engagement.
 
 ---
 
-## Prerequisites
+## 📸 Platform Architecture & Flow
 
-Install these if you don't already have them:
+```mermaid
+graph TD
+    subgraph Client Layer
+        FlutterWeb[Flutter Web App - Port 8080]
+        FlutterAPK[Android App - Emulator/Device]
+    end
 
-1. **.NET 10 SDK** — https://dotnet.microsoft.com/download/dotnet/10.0 (verify with `dotnet --version` first — you may already have it)
-2. **SQL Server** — Express or Developer edition (free):
-   https://www.microsoft.com/sql-server/sql-server-downloads
-   (Already have SQL Server installed some other way? Skip this — just adjust the
-   connection string below to match.)
-3. **Flutter SDK** — https://flutter.dev (the official install guide includes Android
-   Studio setup, which you'll also want for an emulator)
-4. An editor — VS Code with the Flutter + C# extensions, or Visual Studio for the backend
-   and Android Studio for the Flutter side. Either works.
+    subgraph API Gateway / Backend
+        NetAPI[ASP.NET Core 10 Web API - Port 5000]
+        Argon2[Argon2id Hasher]
+        JWT[JWT Token Generator]
+        BackgroundService[Notification Background Worker]
+        RateLimiter[Rate Limiting Middleware]
+        Serilog[Serilog Logging Engine]
+        CorrelationId[Correlation ID Middleware]
+        Gemini[Google Gemini API]
+    end
 
-Verify installs:
-```bash
-dotnet --version      # should print 8.x.x
-flutter doctor         # checks your whole Flutter setup, fix anything it flags red
+    subgraph Database Layer
+        MSSQL[(SQL Server - Local)]
+        Postgres[(PostgreSQL - Render/Cloud)]
+    end
+
+    FlutterWeb -->|HTTP Requests| NetAPI
+    FlutterAPK -->|HTTP Requests via 10.0.2.2| NetAPI
+    NetAPI --> Argon2
+    NetAPI --> JWT
+    NetAPI --> BackgroundService
+    NetAPI --> RateLimiter
+    NetAPI --> Serilog
+    NetAPI --> CorrelationId
+    NetAPI --> Gemini
+    NetAPI -->|EF Core| MSSQL
+    NetAPI -->|EF Core| Postgres
 ```
 
 ---
 
-## 1. Backend setup
+## ✨ Core Features Implemented
 
+### 🏢 1. Single-Database Multi-Tenancy (Multi-Gym)
+*   **Dynamic Resolution:** Gyms are resolved dynamically via the `X-Tenant-Id` HTTP header.
+*   **Global Query Filters:** EF Core automatically applies query filters to isolate data per gym tenant.
+*   **Automated Save Hooks:** New records automatically capture and persist the current tenant ID during save operations.
+
+### 💳 2. Razorpay Payment Gateway Integration
+*   **Order Creation:** Secure backend order generation using the Razorpay API.
+*   **Signature Verification:** Automated payment verification using HMAC-SHA256 signature checks.
+*   **Mock Checkout Flow:** A seamless local sandbox checkout flow on the frontend for testing.
+
+### 🤖 3. Real AI Coach (Google Gemini Integration)
+*   **Gemini API Integration:** The `AiCoachService` uses a typed `HttpClient` to call the official Google Gemini API (`gemini-2.5-flash` model), sending structured prompts to generate customized 7-day workouts and diet plans.
+*   **Robust Fallback:** If the Gemini API Key is unconfigured or a network error occurs, the service gracefully falls back to a high-quality local rule-based generator, ensuring 100% uptime.
+
+### 📊 4. Interactive Admin Analytics
+*   **Revenue Trends:** 12-month revenue trend line charts built using the `fl_chart` library.
+*   **Membership Distribution:** Pie charts showing the breakdown of Basic, Premium, and Elite memberships.
+*   **Class Popularity:** Visual progress indicators showing class booking ratios.
+
+### 🔔 5. In-App Notifications & Background Services
+*   **Expiry Warnings:** Alerts members 3 days before their membership expires.
+*   **Class Reminders:** Sends a notification 24 hours before a booked class.
+*   **Automated Worker:** An hourly background hosted service (`IHostedService`) scans database records to trigger alerts.
+
+### 🔒 6. Security Hardening
+*   **Argon2id Hashing:** High-security cryptographic password hashing.
+*   **JWT Authentication:** Secure token-based stateful authentication.
+*   **Rate Limiting:** Protects auth/payment routes using a fixed-window policy (10 requests/minute).
+*   **Health Checks:** Endpoint at `/api/health` verifying database and background service liveness.
+
+---
+
+## 🛠️ Technology Stack
+
+*   **Frontend:** Flutter (Dart), Provider (State Management), `fl_chart`, `flutter_secure_storage`.
+*   **Backend:** ASP.NET Core 10, EF Core, ASP.NET Core Identity, Serilog, Rate Limiting, Google Gemini API.
+*   **Database:** SQL Server (Development), PostgreSQL (Production).
+*   **DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD), Render Cloud.
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Prerequisites
+*   [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+*   [Flutter SDK](https://flutter.dev)
+*   SQL Server (Local or Docker)
+
+### 2. Database Migration & Setup
+Navigate to the backend directory and run:
 ```bash
 cd backend/BhauFitnessApi
-dotnet restore
+dotnet ef database update
 ```
+*Note: The database will be automatically created and seeded with demo administrator (`admin@bhau.com` / `AdminPassword123`) and member (`member@bhau.com` / `MemberPassword123`) credentials.*
 
-**Check the database connection** — open `appsettings.Development.json` and confirm the
-`Server=` value matches your actual SQL Server instance name:
-- Default SQL Server Express install → `Server=localhost\SQLEXPRESS;...` (already set)
-- Using LocalDB instead → change to `Server=(localdb)\mssqllocaldb;Database=BhauFitnessDb;Trusted_Connection=True;`
-- Using SQL Server auth (username/password) instead of Windows auth → change to
-  `Server=localhost;Database=BhauFitnessDb;User Id=sa;Password=yourpassword;TrustServerCertificate=True;`
-
-**Create the database schema:**
+### 3. Start the Backend API
 ```bash
-dotnet tool install --global dotnet-ef   # one-time, skip if you already have it
-dotnet ef migrations add InitialCreate
+dotnet run --urls "http://localhost:5000"
 ```
-This generates a `Migrations/` folder based on the entity models — that's expected and
-correct, EF Core migrations are meant to be generated locally, not hand-written.
+*Browse to [http://localhost:5000/swagger](http://localhost:5000/swagger) to view the interactive Swagger/OpenAPI documentation.*
 
-**Run it:**
-```bash
-dotnet run
-```
-The first run also auto-applies the migration to create your database (see the
-`Database.Migrate()` call in `Program.cs` — Development-only convenience). Note the
-**port** it prints in the terminal (commonly `http://localhost:5000` or similar, but
-.NET sometimes assigns a different one — check the actual output).
-
-**Test it's alive:** open `http://localhost:<port>/swagger` in a browser — you should see
-the full API with a green "Authorize" button (paste a JWT there to test protected
-endpoints directly from Swagger, no Flutter needed for a quick check).
-
----
-
-## 2. Frontend setup
-
+### 4. Start the Frontend App
+Navigate to the frontend directory and run:
 ```bash
 cd frontend/bhau_fitness_flutter
 flutter pub get
+flutter run -d chrome --web-port=8080
 ```
 
-**Critical step — fix the API URL.** Open `lib/services/api_service.dart` and find:
-```dart
-static const String baseUrl = 'http://10.0.2.2:5000/api';
-```
-`10.0.2.2` is a special address that only works from the **Android emulator** (it's the
-emulator's alias for your computer's `localhost`). Change it based on what you're
-actually running on:
+---
 
-| Running on | Use |
-|---|---|
-| Android emulator | `http://10.0.2.2:<port>/api` (already set — just fix the port) |
-| iOS simulator | `http://localhost:<port>/api` |
-| Chrome (`flutter run -d chrome`) | `http://localhost:<port>/api` |
-| Physical phone | `http://<your-computer's-LAN-IP>:<port>/api` (phone and computer must be on the same Wi-Fi; find your IP with `ipconfig` on Windows) |
+## 🐳 Docker Orchestration
 
-Match `<port>` to whatever the backend printed in step 1.
-
-**Run it:**
+To spin up the entire stack (API + SQL Server Database) using Docker Compose, run:
 ```bash
-flutter run
+docker-compose up --build
 ```
-Pick a device/emulator when prompted if you have more than one available.
 
 ---
 
-## 3. Test the full loop
+## 🧪 Testing
 
-1. Register a new account in the app (pick a goal, fill the form).
-2. You should land on the home screen — "No active membership yet" + a plan list.
-3. Tap **Join** on a plan → the membership card should appear with status, dates, days
-   remaining.
-4. In SQL Server Management Studio (or Azure Data Studio), check the `BhauFitnessDb`
-   database → `AspNetUsers` and `Memberships` tables → your test data should be there.
-5. Log out, log back in with the same credentials → should return straight to the
-   dashboard with your membership intact.
+### Backend Unit Tests (xUnit)
+Run the backend unit test suite:
+```bash
+dotnet test backend/BhauFitnessApi.Tests/
+```
+
+### Frontend Widget Tests
+Run the Flutter widget tests:
+```bash
+cd frontend/bhau_fitness_flutter
+flutter test
+```
 
 ---
 
-## If something breaks
+## 💾 Database Backups
 
-Most likely culprits, roughly in order of probability:
-1. **Connection string mismatch** — SQL Server instance name doesn't match what's in
-   `appsettings.Development.json`. Error will mention "cannot open database" or "server
-   not found."
-2. **Wrong API URL in Flutter** — usually shows as "Could not reach the server" on
-   login/register. Double check the table above matches your actual run target.
-3. **Migrations not applied** — if you skipped `dotnet ef migrations add InitialCreate`,
-   the API will throw on first request. Run that command, then `dotnet run` again.
-4. **NuGet package version conflicts** — if `dotnet restore` complains, tell me the exact
-   error; package versions sometimes need a small bump.
-
-Paste me the exact error text (terminal output, not a paraphrase) and I'll pinpoint the
-fix immediately — that's far faster than guessing.
+A [backup.sh](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/backup.sh) script is provided in the project root to automate database backups:
+*   **Backup PostgreSQL (Production):** `./backup.sh backup-pg`
+*   **Restore PostgreSQL (Production):** `./backup.sh restore-pg [file]`
+*   **Backup SQL Server (Local Docker):** `./backup.sh backup-ms`

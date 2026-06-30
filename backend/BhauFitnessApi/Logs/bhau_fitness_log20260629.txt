@@ -1,0 +1,18 @@
+2026-06-29 09:27:49.836 +05:30 [INF] Executed DbCommand (6ms) [Parameters=[@ef_filter__p='?' (Size = 4000), @threeDaysFromNow='?' (DbType = Date)], CommandType='"Text"', CommandTimeout='30']
+SELECT [m].[Id], [m].[CreatedAt], [m].[EndDate], [m].[PlanId], [m].[StartDate], [m].[Status], [m].[TenantId], [m].[UserId], [p0].[Id], [p0].[Description], [p0].[DurationDays], [p0].[IsActive], [p0].[Name], [p0].[Price], [p0].[TenantId]
+FROM [Memberships] AS [m]
+INNER JOIN (
+    SELECT [p].[Id], [p].[Description], [p].[DurationDays], [p].[IsActive], [p].[Name], [p].[Price], [p].[TenantId]
+    FROM [Plans] AS [p]
+    WHERE [p].[TenantId] = @ef_filter__p
+) AS [p0] ON [m].[PlanId] = [p0].[Id]
+WHERE [m].[TenantId] = @ef_filter__p AND [m].[Status] = 0 AND [m].[EndDate] = @threeDaysFromNow
+2026-06-29 09:27:49.861 +05:30 [INF] Executed DbCommand (5ms) [Parameters=[@ef_filter__p='?' (Size = 4000), @tomorrow='?' (DbType = Date)], CommandType='"Text"', CommandTimeout='30']
+SELECT [b].[Id], [b].[ClassDate], [b].[ClassSessionId], [b].[CreatedAt], [b].[Status], [b].[TenantId], [b].[UserId], [c0].[Id], [c0].[Capacity], [c0].[DayLabel], [c0].[DayOfWeek], [c0].[DurationMin], [c0].[IsActive], [c0].[Level], [c0].[StartTime], [c0].[TenantId], [c0].[Title], [c0].[TrainerName], [c0].[Type]
+FROM [Bookings] AS [b]
+INNER JOIN (
+    SELECT [c].[Id], [c].[Capacity], [c].[DayLabel], [c].[DayOfWeek], [c].[DurationMin], [c].[IsActive], [c].[Level], [c].[StartTime], [c].[TenantId], [c].[Title], [c].[TrainerName], [c].[Type]
+    FROM [ClassSessions] AS [c]
+    WHERE [c].[TenantId] = @ef_filter__p
+) AS [c0] ON [b].[ClassSessionId] = [c0].[Id]
+WHERE [b].[TenantId] = @ef_filter__p AND [b].[Status] = 0 AND [b].[ClassDate] = @tomorrow

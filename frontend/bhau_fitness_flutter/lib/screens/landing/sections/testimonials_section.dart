@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
-import '../../../theme/widgets.dart';
+import '../../../theme/animations.dart';
 import '../landing_data.dart';
 import 'section_scaffold.dart';
 
@@ -18,48 +18,82 @@ class TestimonialsSection extends StatelessWidget {
             title: 'WHAT MEMBERS SAY',
             subtitle: 'Real people. Real results. Real transformations.',
           ),
-          const Padding(
-            padding: EdgeInsets.only(bottom: 30),
-            child: _RatingPill(),
+          const FadeSlideIn(
+            delay: Duration(milliseconds: 100),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 30),
+              child: _RatingPill(),
+            ),
           ),
           ResponsiveGrid(
             tabletColumns: 2,
             desktopColumns: 3,
-            children: [
-              for (final t in testimonials)
-                HoverScale(
-                  scale: 1.03,
+            children: List.generate(testimonials.length, (i) {
+              final t = testimonials[i];
+              return FadeSlideIn(
+                delay: Duration(milliseconds: 200 + i * 100),
+                child: GlowHoverCard(
+                  glowColor: BhauColors.cyan,
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BhauDecor.card(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: List.generate(5, (_) => const Icon(Icons.star, color: BhauColors.warn, size: 15))),
+                        // Stars fill in staggered
+                        Row(
+                          children: List.generate(
+                            5,
+                            (j) => FadeSlideIn(
+                              delay: Duration(
+                                  milliseconds: 300 + i * 80 + j * 50),
+                              child: const Icon(Icons.star,
+                                  color: BhauColors.warn, size: 15),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        Text('"${t.quote}"', style: BhauText.body(fontSize: 13.5).copyWith(fontStyle: FontStyle.italic)),
+                        Text('"${t.quote}"',
+                            style: BhauText.body(fontSize: 13.5)
+                                .copyWith(fontStyle: FontStyle.italic)),
                         const SizedBox(height: 14),
                         Row(
                           children: [
-                            CircleAvatar(radius: 18, backgroundImage: NetworkImage(t.image)),
+                            CircleAvatar(
+                                radius: 18,
+                                backgroundImage: t.image.startsWith('http')
+                                    ? NetworkImage(t.image)
+                                    : AssetImage(t.image) as ImageProvider),
                             const SizedBox(width: 10),
-                            Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(t.name,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13)),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
                             color: BhauColors.lime.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(100),
                           ),
-                          child: Text(t.result, style: BhauText.mono(fontSize: 10, color: BhauColors.lime, weight: FontWeight.w700)),
+                          child: ShaderMask(
+                            shaderCallback: (b) =>
+                                BhauColors.cyanLimeGradient.createShader(b),
+                            child: Text(t.result,
+                                style: BhauText.mono(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    weight: FontWeight.w700)),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-            ],
+              );
+            }),
           ),
         ],
       ),
@@ -82,15 +116,23 @@ class _RatingPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(children: List.generate(5, (_) => const Icon(Icons.star, color: BhauColors.warn, size: 14))),
+          Row(
+              children: List.generate(
+                  5, (_) => const Icon(Icons.star, color: BhauColors.warn, size: 14))),
           const SizedBox(width: 10),
           Text.rich(
             TextSpan(
               children: [
-                const TextSpan(text: '4.9', style: TextStyle(fontWeight: FontWeight.bold, color: BhauColors.ink)),
+                const TextSpan(
+                    text: '4.9',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: BhauColors.ink)),
                 TextSpan(text: ' / 5 · ', style: BhauText.body(fontSize: 13)),
-                const TextSpan(text: '200+', style: TextStyle(fontWeight: FontWeight.bold, color: BhauColors.ink)),
-                TextSpan(text: ' verified Google reviews', style: BhauText.body(fontSize: 13)),
+                const TextSpan(
+                    text: '200+',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: BhauColors.ink)),
+                TextSpan(
+                    text: ' verified Google reviews',
+                    style: BhauText.body(fontSize: 13)),
               ],
             ),
           ),

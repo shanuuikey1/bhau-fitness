@@ -1,21 +1,23 @@
 import 'package:url_launcher/url_launcher.dart';
+import '../brand_config.dart';
 
-/// Same WhatsApp number / contact details used throughout bhau_fitness_v3.html
-/// (demo placeholder number, not a real line).
+/// Contact details are now sourced from [activeTenant] in brand_config.dart.
+/// Changing the active tenant automatically updates all deep-links here.
 class BhauContact {
-  static const whatsappNumber = '919876543210';
-  static const phone = '+91 98765 43210';
-  static const email = 'shanuuikey1@gmail.com';
-  static const instagram = 'hackthealgorithm.in';
-  static const mapsQuery = 'Parasia,Chhindwara,Madhya+Pradesh';
+  static String get whatsappNumber => activeTenant.whatsappNumber;
+  static String get phone         => activeTenant.contactPhone;
+  static String get email         => activeTenant.contactEmail;
+  static String get instagram     => activeTenant.instagramHandle;
+  static String get mapsQuery     => activeTenant.mapsQuery;
 
-  static Future<void> openWhatsApp([String message = 'Hi BHAU FITNESS!']) async {
-    final uri = Uri.parse('https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}');
+  static Future<void> openWhatsApp([String? message]) async {
+    final msg = message ?? activeTenant.whatsappGreeting;
+    final uri = Uri.parse('https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(msg)}');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   static Future<void> openMaps() async {
-    final uri = Uri.parse('https://maps.google.com/?q=$mapsQuery');
+    final uri = Uri.parse(activeTenant.mapsUrl);
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 

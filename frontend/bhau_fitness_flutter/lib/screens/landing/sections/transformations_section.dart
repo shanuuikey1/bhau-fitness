@@ -68,14 +68,20 @@ class _BeforeAfterCardState extends State<_BeforeAfterCard> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Before (full width, underneath).
-                        Image.network(widget.item.before, fit: BoxFit.cover, alignment: Alignment.topCenter,
-                            errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
-                        // After (clipped from the left, on top).
+                        // After (full width, underneath).
+                        widget.item.after.startsWith('http')
+                            ? Image.network(widget.item.after, fit: BoxFit.cover, alignment: Alignment.center,
+                                errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3))
+                            : Image.asset(widget.item.after, fit: BoxFit.cover, alignment: Alignment.center,
+                                errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
+                        // Before (clipped from the left, on top).
                         ClipRect(
                           clipper: _LeftClipper(_split),
-                          child: Image.network(widget.item.after, fit: BoxFit.cover, alignment: Alignment.topCenter,
-                              errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
+                          child: widget.item.before.startsWith('http')
+                              ? Image.network(widget.item.before, fit: BoxFit.cover, alignment: Alignment.center,
+                                  errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3))
+                              : Image.asset(widget.item.before, fit: BoxFit.cover, alignment: Alignment.center,
+                                  errorBuilder: (_, __, ___) => const ColoredBox(color: BhauColors.bg3)),
                         ),
                         // Corner labels.
                         Positioned(

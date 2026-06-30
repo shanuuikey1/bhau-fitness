@@ -21,7 +21,9 @@ class EquipmentSection extends StatelessWidget {
             InteractiveViewer(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(url, fit: BoxFit.contain),
+                child: url.startsWith('http')
+                    ? Image.network(url, fit: BoxFit.contain)
+                    : Image.asset(url, fit: BoxFit.contain),
               ),
             ),
             IconButton(

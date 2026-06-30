@@ -9,8 +9,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/engagement_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/portal_service.dart';
+import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/responsive.dart';
+import 'ai_coach_screen.dart';
 
 /// Exercise names grouped by body part for the workout-log autocomplete —
 /// same categorized list as the HTML's `EXERCISES` map.
@@ -106,23 +108,98 @@ class _DashboardTabState extends State<DashboardTab> {
 
   Future<void> _joinPlan(Plan plan) async {
     setState(() => _joiningPlanId = plan.id);
+    final api = ApiService();
     try {
-      final membership = await _authService.joinPlan(plan.id);
-      setState(() => _membership = membership);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Welcome to the ${plan.name} plan!')),
+      // 1. Create Razorpay Order on Backend
+      final orderData = await api.createPaymentOrder(plan.id);
+      final orderId = orderData['orderId'] as String;
+      final amount = orderData['amount'] as double;
+
+      if (!mounted) return;
+
+      // 2. Show Mock Razorpay Checkout Dialog
+      final payResult = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: BhauColors.bg2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.payment, color: BhauColors.cyan),
+              const SizedBox(width: 10),
+              const Text('Razorpay Checkout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Plan: ${plan.name}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('Amount: ₹${amount.toStringAsFixed(0)}', style: const TextStyle(color: BhauColors.warn, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Text('Order ID: $orderId', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+              const SizedBox(height: 16),
+              const Text(
+                'This simulates the Razorpay Flutter SDK payment flow. Choose an outcome below to test the signature verification webhook.',
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('CANCEL / FAIL', style: TextStyle(color: Colors.redAccent)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: BhauColors.cyan),
+              child: const Text('SUCCESS (PAY)', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+
+      if (payResult == true) {
+        // 3. Verify Razorpay Payment Signature on Backend
+        // Mock payment details that will pass signature verification
+        await api.verifyPayment(
+          orderId,
+          'pay_mock_$_newGuid',
+          'sig_mock_verified',
         );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Payment successful! Welcome to the ${plan.name} plan!')),
+          );
+        }
+        
+        // 4. Refresh Dashboard
+        await _load();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment cancelled or failed.'), backgroundColor: Colors.redAccent),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not join plan: $e'), backgroundColor: BhauColors.bad));
+            .showSnackBar(SnackBar(content: Text('Could not complete payment: $e'), backgroundColor: BhauColors.bad));
       }
     } finally {
       if (mounted) setState(() => _joiningPlanId = null);
     }
   }
+
+  // Guid generator helper for mock payment ids
+  static final _uuid = RegExp(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
+  // A simple class to simulate Guid in Dart
+  // Since we don't have Guid in Dart, we just generate a random string
+  static String get _newGuid => DateTime.now().microsecondsSinceEpoch.toString();
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +226,8 @@ class _DashboardTabState extends State<DashboardTab> {
                         Text("Here's where things stand today.", style: BhauText.body()),
                         const SizedBox(height: 20),
                         _membership != null ? _passCard(_membership!, streak) : _noMembershipCard(),
+                        const SizedBox(height: 20),
+                        _aiCoachBannerCard(),
                         const SizedBox(height: 20),
                         _waterCard(),
                         const SizedBox(height: 20),
@@ -276,6 +355,73 @@ class _DashboardTabState extends State<DashboardTab> {
                       : const Text('Join'),
                 ),
         ],
+      ),
+    );
+  }
+
+  Widget _aiCoachBannerCard() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [BhauColors.bg2, Color(0xFF1B2E35)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: BhauColors.cyan.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AiCoachScreen()),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: BhauColors.cyan.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.bolt, color: BhauColors.cyan, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'AI FITNESS COACH',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Get personalized workout routines & diet plans powered by AI.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right, color: Colors.white54),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

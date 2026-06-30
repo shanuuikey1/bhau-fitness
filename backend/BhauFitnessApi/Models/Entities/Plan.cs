@@ -3,9 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BhauFitnessApi.Models.Entities;
 
-public class Plan
+public class Plan : IMultitenant
 {
     public int Id { get; set; }
+    public string TenantId { get; set; } = "default";
 
     [Required, MaxLength(50)]
     public string Name { get; set; } = string.Empty; // "Basic", "Premium", "Elite"

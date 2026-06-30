@@ -10,9 +10,10 @@ public enum MembershipStatus
     Cancelled
 }
 
-public class Membership
+public class Membership : IMultitenant
 {
     public int Id { get; set; }
+    public string TenantId { get; set; } = "default";
 
     [Required]
     public string UserId { get; set; } = string.Empty;

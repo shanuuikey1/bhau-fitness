@@ -4,9 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BhauFitnessApi.Models.Entities;
 
 /// <summary>One logged exercise set, mirrors the HTML member portal's workout log.</summary>
-public class WorkoutLog
+public class WorkoutLog : IMultitenant
 {
     public int Id { get; set; }
+    public string TenantId { get; set; } = "default";
 
     [Required]
     public string UserId { get; set; } = string.Empty;

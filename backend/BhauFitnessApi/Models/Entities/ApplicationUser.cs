@@ -7,8 +7,9 @@ namespace BhauFitnessApi.Models.Entities;
 /// BHAU FITNESS needs. Identity already gives us: Id, Email, PasswordHash,
 /// PhoneNumber, EmailConfirmed, etc. — we only add what's missing.
 /// </summary>
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser, IMultitenant
 {
+    public string TenantId { get; set; } = "default";
     public string FullName { get; set; } = string.Empty;
 
     // e.g. "lose", "muscle", "fit", "strength" — matches the goal-picker in the web app

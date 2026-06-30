@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/responsive.dart';
+import 'analytics_screen.dart';
 import 'members_tab.dart';
 import 'memberships_tab.dart';
 import 'overview_tab.dart';
@@ -18,13 +19,14 @@ class AdminShell extends StatefulWidget {
 class _AdminShellState extends State<AdminShell> {
   int _index = 0;
 
-  static const _titles = ['Overview', 'Members', 'Memberships', 'Schedule'];
+  static const _titles = ['Overview', 'Members', 'Memberships', 'Schedule', 'Analytics'];
 
   static const _tabs = [
     AdminOverviewTab(),
     AdminMembersTab(),
     AdminMembershipsTab(),
     AdminScheduleTab(),
+    AnalyticsScreen(),
   ];
 
   @override
@@ -56,6 +58,7 @@ class _AdminShellState extends State<AdminShell> {
                 NavigationRailDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: BhauColors.lime), label: Text('Members')),
                 NavigationRailDestination(icon: Icon(Icons.card_membership_outlined), selectedIcon: Icon(Icons.card_membership, color: BhauColors.lime), label: Text('Plans')),
                 NavigationRailDestination(icon: Icon(Icons.event_outlined), selectedIcon: Icon(Icons.event, color: BhauColors.lime), label: Text('Schedule')),
+                NavigationRailDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart, color: BhauColors.lime), label: Text('Analytics')),
               ],
             ),
             const VerticalDivider(width: 1, color: BhauColors.line),
@@ -78,6 +81,7 @@ class _AdminShellState extends State<AdminShell> {
           NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people, color: BhauColors.lime), label: 'Members'),
           NavigationDestination(icon: Icon(Icons.card_membership_outlined), selectedIcon: Icon(Icons.card_membership, color: BhauColors.lime), label: 'Plans'),
           NavigationDestination(icon: Icon(Icons.event_outlined), selectedIcon: Icon(Icons.event, color: BhauColors.lime), label: 'Schedule'),
+          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart, color: BhauColors.lime), label: 'Analytics'),
         ],
       ),
     );

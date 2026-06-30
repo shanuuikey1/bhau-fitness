@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_theme.dart';
 import '../../../theme/responsive.dart';
+import '../../../theme/animations.dart';
 
-/// Shared "eyebrow + heading + subtitle, centered" header used by almost
-/// every section in the HTML (`.shead`).
+// =============================================================================
+// ANIMATED SECTION HEADER — eyebrow + draw-underline + stagger title/subtitle
+// =============================================================================
 class SectionHeader extends StatelessWidget {
   final String eyebrow;
   final String title;
@@ -16,14 +18,36 @@ class SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 32),
       child: Column(
         children: [
-          Text(eyebrow, style: BhauText.eyebrow(), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text(title, style: BhauText.display(fontSize: 32), textAlign: TextAlign.center),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 0),
+            offsetY: 20,
+            child: Text(eyebrow, style: BhauText.eyebrow(), textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 10),
+          // Animated gradient underline draws itself beneath eyebrow
+          Center(
+            child: AnimatedGradientLine(
+              delay: const Duration(milliseconds: 150),
+              maxWidth: 60,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 200),
+            offsetY: 24,
+            child: Text(title, style: BhauText.display(fontSize: 32), textAlign: TextAlign.center),
+          ),
           if (subtitle != null) ...[
             const SizedBox(height: 16),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: Text(subtitle!, style: BhauText.body(fontSize: 15), textAlign: TextAlign.center),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 320),
+              offsetY: 16,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Text(subtitle!,
+                    style: BhauText.body(fontSize: 15), textAlign: TextAlign.center),
+              ),
             ),
           ],
         ],
@@ -32,8 +56,9 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-/// Wraps a section in the standard vertical padding (`.sec-pad`) used
-/// throughout the HTML layout, with an optional bottom divider.
+// =============================================================================
+// SECTION WRAPPER
+// =============================================================================
 class Section extends StatelessWidget {
   final Widget child;
   final Color? background;
@@ -50,19 +75,23 @@ class Section extends StatelessWidget {
   }
 }
 
-/// Network image with a gradient skeleton placeholder, matching the HTML's
-/// `.ph` loading look instead of Flutter's default grey box / spinner.
+// =============================================================================
+// NETWORK / ASSET IMAGE WITH GRADIENT PLACEHOLDER
+// =============================================================================
 class BhauImage extends StatelessWidget {
   final String url;
   final double? height;
   final BorderRadius? radius;
   final Alignment alignment;
+  final BoxFit fit;
+
   const BhauImage({
     super.key,
     required this.url,
     this.height,
     this.radius,
     this.alignment = Alignment.center,
+    this.fit = BoxFit.cover,
   });
 
   @override
@@ -83,22 +112,24 @@ class BhauImage extends StatelessWidget {
                 url,
                 height: height,
                 width: double.infinity,
-                fit: BoxFit.cover,
+                fit: fit,
                 alignment: alignment,
                 loadingBuilder: (context, child, progress) =>
                     progress == null ? child : const SizedBox.shrink(),
                 errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.image_not_supported_outlined, color: BhauColors.faint, size: 28),
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: BhauColors.faint, size: 28),
                 ),
               )
             : Image.asset(
                 url,
                 height: height,
                 width: double.infinity,
-                fit: BoxFit.cover,
+                fit: fit,
                 alignment: alignment,
                 errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.image_not_supported_outlined, color: BhauColors.faint, size: 28),
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: BhauColors.faint, size: 28),
                 ),
               ),
       ),

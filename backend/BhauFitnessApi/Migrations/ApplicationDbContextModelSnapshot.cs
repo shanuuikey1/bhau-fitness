@@ -82,6 +82,10 @@ namespace BhauFitnessApi.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -121,6 +125,10 @@ namespace BhauFitnessApi.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -168,6 +176,10 @@ namespace BhauFitnessApi.Migrations
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -198,6 +210,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "Intermediate",
                             StartTime = new TimeOnly(6, 0, 0),
+                            TenantId = "default",
                             Title = "HIIT",
                             TrainerName = "Coach Aman",
                             Type = "Cardio"
@@ -212,6 +225,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "All Levels",
                             StartTime = new TimeOnly(18, 0, 0),
+                            TenantId = "default",
                             Title = "Strength Training",
                             TrainerName = "Coach Vikram",
                             Type = "Strength"
@@ -226,6 +240,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "All Levels",
                             StartTime = new TimeOnly(7, 0, 0),
+                            TenantId = "default",
                             Title = "Yoga & Mobility",
                             TrainerName = "Coach Priya",
                             Type = "Yoga"
@@ -240,6 +255,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "Intermediate",
                             StartTime = new TimeOnly(6, 0, 0),
+                            TenantId = "default",
                             Title = "HIIT",
                             TrainerName = "Coach Aman",
                             Type = "Cardio"
@@ -254,6 +270,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "Advanced",
                             StartTime = new TimeOnly(18, 0, 0),
+                            TenantId = "default",
                             Title = "Functional Athlete",
                             TrainerName = "Coach Vikram",
                             Type = "Functional"
@@ -268,6 +285,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "All Levels",
                             StartTime = new TimeOnly(7, 0, 0),
+                            TenantId = "default",
                             Title = "Yoga & Mobility",
                             TrainerName = "Coach Priya",
                             Type = "Yoga"
@@ -282,6 +300,7 @@ namespace BhauFitnessApi.Migrations
                             IsActive = true,
                             Level = "All Levels",
                             StartTime = new TimeOnly(9, 0, 0),
+                            TenantId = "default",
                             Title = "Body Transformation",
                             TrainerName = "Coach Sneha",
                             Type = "Strength"
@@ -311,6 +330,10 @@ namespace BhauFitnessApi.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -322,6 +345,98 @@ namespace BhauFitnessApi.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Memberships");
+                });
+
+            modelBuilder.Entity("BhauFitnessApi.Models.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("BhauFitnessApi.Models.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RazorpayOrderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RazorpayPaymentId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RazorpaySignature")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("BhauFitnessApi.Models.Entities.Plan", b =>
@@ -350,6 +465,10 @@ namespace BhauFitnessApi.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Plans");
@@ -362,7 +481,8 @@ namespace BhauFitnessApi.Migrations
                             DurationDays = 30,
                             IsActive = true,
                             Name = "Basic",
-                            Price = 1499m
+                            Price = 1499m,
+                            TenantId = "default"
                         },
                         new
                         {
@@ -371,7 +491,8 @@ namespace BhauFitnessApi.Migrations
                             DurationDays = 30,
                             IsActive = true,
                             Name = "Premium",
-                            Price = 2999m
+                            Price = 2999m,
+                            TenantId = "default"
                         },
                         new
                         {
@@ -380,7 +501,8 @@ namespace BhauFitnessApi.Migrations
                             DurationDays = 30,
                             IsActive = true,
                             Name = "Elite",
-                            Price = 4999m
+                            Price = 4999m,
+                            TenantId = "default"
                         });
                 });
 
@@ -397,6 +519,10 @@ namespace BhauFitnessApi.Migrations
 
                     b.Property<DateOnly>("LogDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -434,6 +560,10 @@ namespace BhauFitnessApi.Migrations
 
                     b.Property<int>("Sets")
                         .HasColumnType("int");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -611,6 +741,36 @@ namespace BhauFitnessApi.Migrations
 
                     b.HasOne("BhauFitnessApi.Models.Entities.ApplicationUser", "User")
                         .WithMany("Memberships")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BhauFitnessApi.Models.Entities.Notification", b =>
+                {
+                    b.HasOne("BhauFitnessApi.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BhauFitnessApi.Models.Entities.Payment", b =>
+                {
+                    b.HasOne("BhauFitnessApi.Models.Entities.Plan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BhauFitnessApi.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

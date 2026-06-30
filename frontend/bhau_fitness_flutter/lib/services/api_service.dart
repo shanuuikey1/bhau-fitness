@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'token_storage.dart';
 
@@ -25,19 +26,20 @@ class ApiService {
   //                          http://192.168.1.42:5000  (device and computer
   //                          must be on the same Wi-Fi network)
   //   • Flutter web (chrome) -> http://localhost:5000 works fine as-is
-  //
-  // Check the exact port your API is actually running on (printed in the
-  // terminal when you `dotnet run` — it's often 5000/5001 or a random one
-  // assigned by Visual Studio; adjust below to match).
   // ─────────────────────────────────────────────────────────────────────
-  // Overridable at build time so the hosted web build can point at the deployed
-  // API instead of localhost. Production build:
-  //   flutter build web --dart-define=API_BASE_URL=https://<your-api>.onrender.com/api
-  // With no override it falls back to localhost for local development.
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:5000/api',
-  );
+  
+  static String get baseUrl {
+    const definedUrl = String.fromEnvironment('API_BASE_URL');
+    if (definedUrl.isNotEmpty) return definedUrl;
+    
+    if (kIsWeb) {
+      return 'http://localhost:5000/api';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5000/api';
+    }
+    return 'http://localhost:5000/api';
+  }
 
   final TokenStorage _tokenStorage = TokenStorage();
 
@@ -117,5 +119,76 @@ class ApiService {
         .delete(Uri.parse('$baseUrl$path'), headers: await _headers(auth: auth))
         .timeout(const Duration(seconds: 15));
     return _decode(res);
+  }
+
+  Future<Map<String, dynamic>> getWorkoutPlan(Map<String, dynamic> body) async {
+    final res = await post('/ai/workout-plan', body, auth: true);
+    return Map<String, dynamic>.from(res);
+  }
+
+  Future<Map<String, dynamic>> getDietPlan(Map<String, dynamic> body) async {
+    final res = await post('/ai/diet-plan', body, auth: true);
+    return Map<String, dynamic>.from(res);
+  }
+
+  Future<Map<String, dynamic>> getMotivationalTip() async {
+    final res = await get('/ai/tip', auth: true);
+    return Map<String, dynamic>.from(res);
+  }
+
+  Future<Map<String, dynamic>> createPaymentOrder(int planId) async {
+    final res = await post('/payments/create-order', {'planId': planId}, auth: true);
+    return Map<String, dynamic>.from(res);
+  }
+
+  Future<void> verifyPayment(String orderId, String paymentId, String signature) async {
+    await post('/payments/verify', {
+      'razorpayOrderId': orderId,
+      'razorpayPaymentId': paymentId,
+      'razorpaySignature': signature,
+    }, auth: true);
+  }
+
+  Future<List<Map<String, dynamic>>> getPaymentHistory() async {
+    final res = await get('/payments/history', auth: true) as List;
+    return res.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsOverview() async {
+    final res = await get('/analytics/overview', auth: true);
+    return Map<String, dynamic>.from(res);
+  }
+
+  Future<List<Map<String, dynamic>>> getRevenueTrend() async {
+    final res = await get('/analytics/revenue-trend', auth: true) as List;
+    return res.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getPopularClasses() async {
+    final res = await get('/analytics/popular-classes', auth: true) as List;
+    return res.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getMembershipDistribution() async {
+    final res = await get('/analytics/membership-distribution', auth: true) as List;
+    return res.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getNotifications() async {
+    final res = await get('/notifications', auth: true) as List;
+    return res.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  Future<int> getUnreadCount() async {
+    final res = await get('/notifications/unread-count', auth: true);
+    return res['count'] as int;
+  }
+
+  Future<void> markNotificationRead(int id) async {
+    await put('/notifications/$id/read', {}, auth: true);
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    await put('/notifications/read-all', {}, auth: true);
   }
 }

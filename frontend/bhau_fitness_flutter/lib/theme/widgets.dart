@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
+import '../brand_config.dart';
 
 /// Filled button with the cyan→lime brand gradient instead of a flat color —
 /// ElevatedButton can't paint a gradient background directly, so this wraps
@@ -97,37 +98,15 @@ class BrandWordmark extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('BHAU ', style: BhauText.display(fontSize: fontSize)),
-        Text('FITNESS', style: BhauText.display(fontSize: fontSize, color: BhauColors.lime)),
+        Text('${activeTenant.wordmarkPart1} ', style: BhauText.display(fontSize: fontSize)),
+        Text(activeTenant.wordmarkPart2, style: BhauText.display(fontSize: fontSize, color: BhauColors.lime)),
       ],
     );
   }
 }
 
-class _HexagonClipper extends CustomClipper<Path> {
-  const _HexagonClipper();
-
-  @override
-  Path getClip(Size size) {
-    final w = size.width, h = size.height;
-    final path = Path()
-      ..moveTo(w * 0.5, 0)
-      ..lineTo(w, h * 0.25)
-      ..lineTo(w, h * 0.75)
-      ..lineTo(w * 0.5, h)
-      ..lineTo(0, h * 0.75)
-      ..lineTo(0, h * 0.25)
-      ..close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-/// The hexagonal "BB" crossed-dumbbell brand mark used above the login card.
 class HexagonLogo extends StatelessWidget {
-  const HexagonLogo({super.key, this.size = 64});
+  const HexagonLogo({super.key, this.size = 90});
   final double size;
 
   @override
@@ -135,30 +114,13 @@ class HexagonLogo extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          ClipPath(
-            clipper: const _HexagonClipper(),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: BhauColors.cyanLimeGradient,
-              ),
-              child: Container(
-                margin: const EdgeInsets.all(2.0),
-                decoration: const BoxDecoration(
-                  color: BhauColors.bg,
-                ),
-              ),
-            ),
-          ),
-          Image.asset(
-            'assets/images/brand_logo.png',
-            width: size * 0.52,
-            height: size * 0.52,
-            fit: BoxFit.contain,
-          ),
-        ],
+      child: Center(
+        child: Image.asset(
+          activeTenant.logoAsset,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

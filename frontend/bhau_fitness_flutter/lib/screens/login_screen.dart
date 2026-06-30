@@ -206,33 +206,33 @@ class _LoginScreenState extends State<LoginScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const HexagonLogo(size: 64),
-          const SizedBox(height: 12),
-          const Center(child: BrandWordmark(fontSize: 30)),
-          const SizedBox(height: 4),
+          const HexagonLogo(size: 72),
+          const SizedBox(height: 8),
+          const Center(child: BrandWordmark(fontSize: 26)),
+          const SizedBox(height: 2),
           Center(
             child: Text(
               'STRONGER EVERYDAY',
               style: BhauText.mono(
-                fontSize: 11,
+                fontSize: 10,
                 color: BhauColors.faint,
-                letterSpacing: 3.5,
+                letterSpacing: 3.0,
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             'Welcome Back',
             textAlign: TextAlign.center,
-            style: BhauText.display(fontSize: 22),
+            style: BhauText.display(fontSize: 20),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             'Log in to continue your fitness journey',
             textAlign: TextAlign.center,
-            style: BhauText.body(fontSize: 13.5),
+            style: BhauText.body(fontSize: 13.0),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           if (auth.errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),

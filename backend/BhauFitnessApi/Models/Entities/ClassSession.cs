@@ -6,9 +6,10 @@ namespace BhauFitnessApi.Models.Entities;
 /// A recurring class slot on the weekly schedule (mirrors the HTML site's
 /// schedule preview/booking — e.g. "Mon 6:00 AM — HIIT — Coach Aman").
 /// </summary>
-public class ClassSession
+public class ClassSession : IMultitenant
 {
     public int Id { get; set; }
+    public string TenantId { get; set; } = "default";
 
     // 1 (Monday) .. 7 (Sunday) — kept simple since classes repeat weekly.
     public int DayOfWeek { get; set; }

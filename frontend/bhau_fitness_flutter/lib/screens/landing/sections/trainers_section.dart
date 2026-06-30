@@ -80,7 +80,12 @@ class TrainersSection extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: BhauImage(url: t.image, height: 200, radius: BorderRadius.zero),
+              child: BhauImage(
+                url: t.image,
+                height: 280,
+                radius: BorderRadius.zero,
+                alignment: Alignment.topCenter,
+              ),
             ),
             const SizedBox(height: 16),
             Text(t.name, style: BhauText.display(fontSize: 24)),

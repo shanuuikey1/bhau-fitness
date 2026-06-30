@@ -7,6 +7,8 @@ import '../../services/external_links.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/responsive.dart';
 import '../../theme/widgets.dart';
+import '../../theme/animations.dart';
+import '../../brand_config.dart';
 import '../login_screen.dart';
 import '../register_screen.dart';
 import 'sections/about_section.dart';
@@ -116,7 +118,7 @@ class _LandingScreenState extends State<LandingScreen> {
   void _scrollToTop() => _scrollCtrl.animateTo(0,
       duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
 
-  Widget _navLink(String label, GlobalKey key) => _HoverColorTextButton(
+  Widget _navLink(String label, GlobalKey key) => AnimatedNavLink(
         label: label,
         onPressed: () => _scrollTo(key),
       );
@@ -173,21 +175,22 @@ class _LandingScreenState extends State<LandingScreen> {
             top: 0,
             left: 0,
             right: 0,
-            child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: _scrolled ? 12 : 18),
-            decoration: BoxDecoration(
-              color: _scrolled ? BhauColors.bg.withValues(alpha: 0.92) : Colors.transparent,
-              border: _scrolled ? const Border(bottom: BorderSide(color: BhauColors.line)) : null,
-            ),
+            child: RepaintBoundary(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: _scrolled ? 12 : 18),
+                decoration: BoxDecoration(
+                  color: _scrolled ? BhauColors.bg.withValues(alpha: 0.92) : Colors.transparent,
+                  border: _scrolled ? const Border(bottom: BorderSide(color: BhauColors.line)) : null,
+                ),
             child: SafeArea(
               bottom: false,
               child: ContentMaxWidth(
                 child: Row(
                 children: [
-                  const HexagonLogo(size: 32),
-                  const SizedBox(width: 10),
-                  Text('BHAU FITNESS', style: BhauText.display(fontSize: 16)),
+                  const HexagonLogo(size: 44),
+                  const SizedBox(width: 14),
+                  Text(activeTenant.brandName, style: BhauText.display(fontSize: 22)),
                   const Spacer(),
                   if (Breakpoints.isDesktop(context)) ...[
                     _navLink('Programs', _programsKey),
@@ -216,15 +219,17 @@ class _LandingScreenState extends State<LandingScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                   const SizedBox(width: 8),
-                  HoverScale(
+                   HoverScale(
                     scale: 1.05,
-                    child: ElevatedButton(
-                      onPressed: _goRegister,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: BhauColors.lime,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: ShimmerSweep(
+                      child: ElevatedButton(
+                        onPressed: _goRegister,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: BhauColors.lime,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        ),
+                        child: const Text('Join Now', style: TextStyle(fontSize: 13)),
                       ),
-                      child: const Text('Join Now', style: TextStyle(fontSize: 13)),
                     ),
                   ),
                 ],
@@ -232,6 +237,12 @@ class _LandingScreenState extends State<LandingScreen> {
               ),
             ),
           ),
+          ),
+          ),
+          // Scroll progress bar — thin gradient line at the very top
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: ScrollProgressBar(controller: _scrollCtrl),
           ),
           // Back-to-top sits bottom-LEFT in the HTML (.back-top), WhatsApp
           // float sits bottom-right (.wa-float) — kept on opposite corners

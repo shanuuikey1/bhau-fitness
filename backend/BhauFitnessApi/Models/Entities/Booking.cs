@@ -9,9 +9,10 @@ public enum BookingStatus
     Cancelled
 }
 
-public class Booking
+public class Booking : IMultitenant
 {
     public int Id { get; set; }
+    public string TenantId { get; set; } = "default";
 
     [Required]
     public string UserId { get; set; } = string.Empty;

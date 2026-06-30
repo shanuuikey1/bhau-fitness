@@ -1,0 +1,32 @@
+services:
+  # ── BHAU FITNESS API Web Service ────────────────────────────────────────────
+  - type: web
+    name: bhau-fitness-api
+    env: docker
+    dockerfilePath: backend/BhauFitnessApi/Dockerfile
+    dockerContext: backend
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DB_PROVIDER
+        value: Postgres
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bhau-fitness-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: bhau-fitness-api
+      - key: Jwt__Audience
+        value: bhau-fitness-app
+      - key: ALLOWED_ORIGINS
+        value: "*" # Update this with your production web app URL
+
+# ── Managed PostgreSQL Database ───────────────────────────────────────────────
+databases:
+  - name: bhau-fitness-db
+    plan: free
+    databaseName: bhau_fitness
+    user: bhau_admin
