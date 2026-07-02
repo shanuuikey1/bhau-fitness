@@ -50,44 +50,8 @@ public class MembershipsController : ControllerBase
         });
     }
 
-    // Self-service "join a plan" — in the foundation scope this activates immediately.
-    // (The web app instead routes this through a WhatsApp lead + manual payment —
-    // wire that same pattern in here later if you want parity instead of instant activation.)
-    [HttpPost]
-    public async Task<ActionResult<MembershipDto>> CreateMembership(CreateMembershipDto dto)
-    {
-        var plan = await _db.Plans.FindAsync(dto.PlanId);
-        if (plan == null || !plan.IsActive)
-            return BadRequest(new { error = "Plan not found or inactive." });
-
-        // Cancel any existing active membership before starting a new one.
-        var existingActive = await _db.Memberships
-            .Where(m => m.UserId == CurrentUserId && m.Status == MembershipStatus.Active)
-            .ToListAsync();
-        foreach (var m in existingActive) m.Status = MembershipStatus.Cancelled;
-
-        var start = DateOnly.FromDateTime(DateTime.UtcNow);
-        var membership = new Membership
-        {
-            UserId = CurrentUserId,
-            PlanId = plan.Id,
-            Status = MembershipStatus.Active,
-            StartDate = start,
-            EndDate = start.AddDays(plan.DurationDays),
-        };
-
-        _db.Memberships.Add(membership);
-        await _db.SaveChangesAsync();
-
-        return Ok(new MembershipDto
-        {
-            Id = membership.Id,
-            PlanName = plan.Name,
-            PlanPrice = plan.Price,
-            Status = membership.Status.ToString(),
-            StartDate = membership.StartDate,
-            EndDate = membership.EndDate,
-            DaysRemaining = plan.DurationDays,
-        });
-    }
+    // NOTE: the old self-service POST /api/memberships endpoint (instant free
+    // activation, no payment) was removed — memberships are granted only via
+    // the verified payment flow (PaymentsController) or by an admin
+    // (AdminController.GrantMembership).
 }

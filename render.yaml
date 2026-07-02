@@ -4,29 +4,36 @@ services:
     name: bhau-fitness-api
     env: docker
     dockerfilePath: backend/BhauFitnessApi/Dockerfile
-    dockerContext: backend
-    plan: free
+    # Must match the Dockerfile, which COPYs BhauFitnessApi.csproj from the
+    # context root — so the context is the project folder itself.
+    dockerContext: backend/BhauFitnessApi
+    # "starter" (paid) does not sleep between requests — required so the app
+    # loads instantly. The free plan spins down and cold-starts.
+    plan: starter
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: DB_PROVIDER
         value: Postgres
+      # Set DATABASE_URL in the Render dashboard to the Supabase PostgreSQL
+      # connection string (or attach a Render database and use fromDatabase).
       - key: DATABASE_URL
-        fromDatabase:
-          name: bhau-fitness-db
-          property: connectionString
+        sync: false
       - key: Jwt__Key
         generateValue: true
       - key: Jwt__Issuer
-        value: bhau-fitness-api
+        value: BhauFitnessApi
       - key: Jwt__Audience
-        value: bhau-fitness-app
+        value: BhauFitnessFlutterApp
+      # Comma-separated list of allowed browser origins. MUST be the real
+      # frontend URL(s) — a literal "*" is treated as "allow any origin,
+      # without credentials". Example: https://bhaufitness.netlify.app
       - key: ALLOWED_ORIGINS
-        value: "*" # Update this with your production web app URL
-
-# ── Managed PostgreSQL Database ───────────────────────────────────────────────
-databases:
-  - name: bhau-fitness-db
-    plan: free
-    databaseName: bhau_fitness
-    user: bhau_admin
+        sync: false
+      # Secrets — set these in the Render dashboard, never in this file.
+      - key: Gemini__ApiKey
+        sync: false
+      - key: Razorpay__KeyId
+        value: rzp_test_placeholder
+      - key: Razorpay__KeySecret
+        value: placeholder_secret

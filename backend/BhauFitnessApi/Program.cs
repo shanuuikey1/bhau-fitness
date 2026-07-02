@@ -63,9 +63,15 @@ try
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = false;
         options.User.RequireUniqueEmail = true;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+    // Argon2id hashing for new passwords; verifies legacy PBKDF2 hashes and
+    // upgrades them transparently on next successful login.
+    builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, Argon2PasswordHasher<ApplicationUser>>();
 
     // ── JWT Settings ──────────────────────────────────────────────────────────
     builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
@@ -105,7 +111,7 @@ try
     builder.Services.AddScoped<IMembershipService, MembershipService>();
     builder.Services.AddScoped<IClassService, ClassService>();
     builder.Services.AddHttpClient<AiCoachService>();
-    builder.Services.AddScoped<RazorpayService>();
+    builder.Services.AddHttpClient<RazorpayService>();
     builder.Services.AddHostedService<NotificationTriggerService>();
 
     // ── Health Checks ─────────────────────────────────────────────────────────
@@ -116,12 +122,22 @@ try
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        options.AddFixedWindowLimiter("strict", opt =>
+        // Partitioned per client so one member's requests can't exhaust the
+        // budget for everyone. Uses the first X-Forwarded-For hop when behind
+        // a proxy (Render/Netlify), falling back to the socket address.
+        options.AddPolicy("strict", context =>
         {
-            opt.PermitLimit = 10;
-            opt.Window = TimeSpan.FromMinutes(1);
-            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-            opt.QueueLimit = 2;
+            var forwarded = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            var clientKey = !string.IsNullOrWhiteSpace(forwarded)
+                ? forwarded.Split(',')[0].Trim()
+                : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(clientKey, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2,
+            });
         });
     });
 
@@ -133,7 +149,9 @@ try
     {
         options.AddPolicy("AllowFlutterClient", policy =>
         {
-            if (allowedOrigins.Length > 0)
+            // "*" is not a valid literal origin, and combining a wildcard with
+            // AllowCredentials() makes ASP.NET Core throw — treat it as "allow any".
+            if (allowedOrigins.Length > 0 && !allowedOrigins.Contains("*"))
             {
                 policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
             }
@@ -178,6 +196,12 @@ try
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         if (usePostgres)
         {
+            // The checked-in migrations are SQL Server-specific, so Postgres uses
+            // EnsureCreated (schema from the current model). LIMITATION: future
+            // model changes will NOT be applied to an existing Postgres database —
+            // proper Npgsql migrations (separate migrations assembly) are needed
+            // before shipping any schema change to production.
+            Log.Warning("Postgres provider active: using EnsureCreated — schema changes after first deploy require manual migration.");
             await db.Database.EnsureCreatedAsync();
         }
         else
@@ -225,13 +249,29 @@ try
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
         }
+
+        // Demo member account — referenced by the docs and the deployment
+        // acceptance tests, so it must actually exist.
+        var memberEmail = "member@bhau.com";
+        var memberExists = await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == memberEmail);
+        if (!memberExists)
+        {
+            var memberUser = new ApplicationUser
+            {
+                UserName = memberEmail,
+                Email = memberEmail,
+                FullName = "Bhau Member",
+                MemberCode = "BHAU-1001",
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow,
+                TenantId = "default"
+            };
+            await userManager.CreateAsync(memberUser, "MemberPassword123");
+        }
     }
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     if (app.Environment.IsDevelopment())
     {

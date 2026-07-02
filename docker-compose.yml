@@ -30,7 +30,8 @@ services:
       - Jwt__Key=REPLACE_ME_WITH_A_LONG_RANDOM_SECRET_IN_PRODUCTION
       - Jwt__Issuer=BhauFitnessApi
       - Jwt__Audience=BhauFitnessFlutterApp
-      - Gemini__ApiKey=AQ.Ab8RN6Jz66mDBD0Xac_KPCqLXID1C9jOXWnZ3BFLCAQY-UCP6w
+      # Set via a .env file or shell environment — never commit a real key here.
+      - Gemini__ApiKey=${GEMINI_API_KEY:-}
       - Razorpay__KeyId=rzp_test_placeholder
       - Razorpay__KeySecret=placeholder_secret
     depends_on:

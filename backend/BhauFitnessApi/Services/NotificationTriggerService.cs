@@ -53,16 +53,25 @@ namespace BhauFitnessApi.Services
             var threeDaysFromNow = today.AddDays(3);
             var tomorrow = today.AddDays(1);
 
-            // 1. Check for memberships expiring in 3 days
+            // This service runs with no HttpContext, so the tenant provider
+            // resolves to "default" and the global query filters would hide
+            // every other gym's data. IgnoreQueryFilters + explicit TenantId
+            // on created rows keeps notifications working for all tenants.
+
+            // 1. Memberships entering their final 3 days. A window (not an
+            // exact date match) so a day of downtime doesn't skip anyone.
             var expiringMemberships = await db.Memberships
+                .IgnoreQueryFilters()
                 .Include(m => m.Plan)
-                .Where(m => m.Status == MembershipStatus.Active && m.EndDate == threeDaysFromNow)
+                .Where(m => m.Status == MembershipStatus.Active
+                    && m.EndDate > today && m.EndDate <= threeDaysFromNow)
                 .ToListAsync();
 
             foreach (var m in expiringMemberships)
             {
                 // Prevent duplicate notifications
                 bool alreadyNotified = await db.Notifications
+                    .IgnoreQueryFilters()
                     .AnyAsync(n => n.UserId == m.UserId && n.Type == "MembershipExpiry" && n.CreatedAt >= DateTime.UtcNow.AddDays(-5));
 
                 if (!alreadyNotified)
@@ -71,18 +80,20 @@ namespace BhauFitnessApi.Services
                     {
                         UserId = m.UserId,
                         Title = "Membership Expiring Soon!",
-                        Body = $"Your {m.Plan?.Name} plan will expire in 3 days on {m.EndDate:dd MMM yyyy}. Renew now to stay active!",
+                        Body = $"Your {m.Plan?.Name} plan will expire on {m.EndDate:dd MMM yyyy}. Renew now to stay active!",
                         Type = "MembershipExpiry",
                         IsRead = false,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        TenantId = m.TenantId
                     };
                     db.Notifications.Add(n);
-                    _logger.LogInformation($"Queued membership expiry notification for user {m.UserId}");
+                    _logger.LogInformation("Queued membership expiry notification for user {UserId}", m.UserId);
                 }
             }
 
             // 2. Check for classes booked for tomorrow
             var tomorrowBookings = await db.Bookings
+                .IgnoreQueryFilters()
                 .Include(b => b.ClassSession)
                 .Where(b => b.Status == BookingStatus.Booked && b.ClassDate == tomorrow)
                 .ToListAsync();
@@ -91,10 +102,11 @@ namespace BhauFitnessApi.Services
             {
                 if (b.ClassSession == null) continue;
 
-                // Prevent duplicate notifications
-                string bookingKey = $"ClassReminder:{b.Id}";
+                // Dedup on a stable per-booking marker embedded in the body.
+                string bookingMarker = $"[booking #{b.Id}]";
                 bool alreadyNotified = await db.Notifications
-                    .AnyAsync(n => n.UserId == b.UserId && n.Type == "ClassReminder" && n.Body.Contains(b.ClassSession.Title) && n.CreatedAt >= DateTime.UtcNow.AddDays(-2));
+                    .IgnoreQueryFilters()
+                    .AnyAsync(n => n.UserId == b.UserId && n.Type == "ClassReminder" && n.Body.Contains(bookingMarker));
 
                 if (!alreadyNotified)
                 {
@@ -102,13 +114,14 @@ namespace BhauFitnessApi.Services
                     {
                         UserId = b.UserId,
                         Title = "Upcoming Class Reminder",
-                        Body = $"Reminder: You are booked for '{b.ClassSession.Title}' tomorrow ({tomorrow:dd MMM}) at {b.ClassSession.StartTime}. See you there!",
+                        Body = $"Reminder: You are booked for '{b.ClassSession.Title}' tomorrow ({tomorrow:dd MMM}) at {b.ClassSession.StartTime:HH\\:mm}. See you there! {bookingMarker}",
                         Type = "ClassReminder",
                         IsRead = false,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        TenantId = b.TenantId
                     };
                     db.Notifications.Add(n);
-                    _logger.LogInformation($"Queued class booking reminder for user {b.UserId}");
+                    _logger.LogInformation("Queued class booking reminder for user {UserId}", b.UserId);
                 }
             }
 

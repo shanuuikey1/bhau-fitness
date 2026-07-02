@@ -68,9 +68,16 @@ public class MembershipService : IMembershipService
         var payment = await _db.Payments
             .FirstOrDefaultAsync(p => p.RazorpayOrderId == dto.RazorpayOrderId);
 
-        if (payment == null)
+        if (payment == null || payment.UserId != userId)
         {
             throw new KeyNotFoundException("Payment order record not found.");
+        }
+
+        // Idempotency guard: a settled order can't be re-verified to mint
+        // another membership (replay protection).
+        if (payment.Status == PaymentStatus.Paid)
+        {
+            return true;
         }
 
         bool isValid = _razorpayService.VerifySignature(dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature);

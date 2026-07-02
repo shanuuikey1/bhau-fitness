@@ -95,8 +95,9 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
     await auth.tryAutoLogin();
     
     final elapsed = DateTime.now().difference(startTime);
-    // Guarantee 2.8 seconds of premium splash animation
-    final remaining = const Duration(milliseconds: 2800) - elapsed;
+    // Show the splash just long enough to not flash (the web loader has
+    // already covered engine startup) — long waits here read as lag.
+    final remaining = const Duration(milliseconds: 1100) - elapsed;
     if (remaining > Duration.zero) {
       await Future.delayed(remaining);
     }
@@ -116,7 +117,7 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
             child: child,
           );
         },
-        transitionDuration: const Duration(milliseconds: 800),
+        transitionDuration: const Duration(milliseconds: 350),
       ),
     );
   }

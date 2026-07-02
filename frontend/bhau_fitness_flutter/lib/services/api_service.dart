@@ -30,8 +30,15 @@ class ApiService {
   
   static String get baseUrl {
     const definedUrl = String.fromEnvironment('API_BASE_URL');
-    if (definedUrl.isNotEmpty) return definedUrl;
-    
+    if (definedUrl.isNotEmpty) {
+      // Accept the URL with or without the /api suffix so a deploy-time
+      // --dart-define can't silently point at the wrong path.
+      final trimmed = definedUrl.endsWith('/')
+          ? definedUrl.substring(0, definedUrl.length - 1)
+          : definedUrl;
+      return trimmed.endsWith('/api') ? trimmed : '$trimmed/api';
+    }
+
     if (kIsWeb) {
       return 'http://localhost:5000/api';
     }

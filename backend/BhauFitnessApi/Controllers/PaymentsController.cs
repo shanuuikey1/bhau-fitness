@@ -18,10 +18,12 @@ namespace BhauFitnessApi.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly IMembershipService _membershipService;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
 
-        public PaymentsController(IMembershipService membershipService)
+        public PaymentsController(IMembershipService membershipService, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             _membershipService = membershipService;
+            _config = config;
         }
 
         private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!;
@@ -32,21 +34,23 @@ namespace BhauFitnessApi.Controllers
             try
             {
                 var payment = await _membershipService.CreateOrderAsync(CurrentUserId, dto.PlanId);
-                
-                // Key is resolved here based on context
-                string keyId = "rzp_test_placeholder"; 
 
                 return Ok(new CreateOrderResponseDto
                 {
                     OrderId = payment.RazorpayOrderId,
                     Amount = payment.Amount,
                     Currency = payment.Currency,
-                    Key = keyId
+                    Key = _config["Razorpay:KeyId"] ?? "rzp_test_placeholder"
                 });
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Real gateway unreachable — surface as service unavailable.
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { error = ex.Message });
             }
         }
 

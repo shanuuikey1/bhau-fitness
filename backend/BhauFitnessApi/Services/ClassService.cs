@@ -33,6 +33,11 @@ public class ClassService : IClassService
             throw new KeyNotFoundException("Class not found.");
         }
 
+        if (classDate < DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            throw new ArgumentException("That class date has already passed.");
+        }
+
         var isoDayOfWeek = classDate.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)classDate.DayOfWeek;
         if (isoDayOfWeek != session.DayOfWeek)
         {

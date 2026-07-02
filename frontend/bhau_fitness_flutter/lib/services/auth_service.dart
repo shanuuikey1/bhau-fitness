@@ -96,8 +96,7 @@ class AuthService {
     }
   }
 
-  Future<Membership> joinPlan(int planId) async {
-    final res = await _api.post('/memberships', {'planId': planId}, auth: true);
-    return Membership.fromJson(res as Map<String, dynamic>);
-  }
+  // NOTE: joinPlan (free instant membership via POST /api/memberships) was
+  // removed — the backend endpoint no longer exists; membership activation
+  // goes through the payment flow in dashboard_tab.dart.
 }

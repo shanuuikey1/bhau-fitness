@@ -236,15 +236,15 @@ services:
 ```
 
 ### 🚀 Cloud Deployment (`render.yaml`)
-A [render.yaml](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/render.yaml) file is included in the project root to support automated Infrastructure-as-Code deployment on the **Render** platform, linking the Web API container to a managed PostgreSQL instance.
+A [render.yaml](render.yaml) file is included in the project root to support automated Infrastructure-as-Code deployment on the **Render** platform. Database, CORS origins, and API keys are provided via Render environment variables (`sync: false` entries) — never committed.
 
 ### 💾 Automated Backups & Disaster Recovery (`backup.sh`)
-The [backup.sh](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/backup.sh) shell script provides automated scheduled backup and restore procedures:
+The [backup.sh](backup.sh) shell script provides automated scheduled backup and restore procedures:
 *   `backup-pg` / `restore-pg`: Backup/Restore production PostgreSQL databases.
 *   `backup-ms`: Backup local SQL Server database inside the Docker container.
 
 ### 🚀 CI/CD GitHub Actions Workflow
-The [.github/workflows/ci.yml](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/.github/workflows/ci.yml) workflow automatically runs on every push and pull request to the `main` branch, executing:
+The [.github/workflows/ci.yml](.github/workflows/ci.yml) workflow automatically runs on every push and pull request to the `main` branch, executing:
 1.  **Backend:** Restores dependencies, builds the API, and runs all xUnit tests.
 2.  **Frontend:** Installs the Flutter SDK, analyzes the codebase (`flutter analyze`), and runs all widget tests (`flutter test`).
 
@@ -253,7 +253,7 @@ The [.github/workflows/ci.yml](file:///c:/Users/shanu/Downloads/bhau-flutter-sta
 ## 7. Testing Guide
 
 ### 1. Backend xUnit Tests
-The [BhauFitnessApi.Tests](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/backend/BhauFitnessApi.Tests/BhauFitnessApi.Tests.csproj) project contains comprehensive unit tests for controllers and services. To run the backend tests, navigate to the project root and run:
+The [BhauFitnessApi.Tests](backend/BhauFitnessApi.Tests/BhauFitnessApi.Tests.csproj) project contains unit tests for controllers and services. To run the backend tests, navigate to the project root and run:
 ```bash
 dotnet test backend/BhauFitnessApi.Tests/BhauFitnessApi.Tests.csproj
 ```

@@ -34,6 +34,9 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new("full_name", user.FullName),
+            // Tenant is baked into the token so authenticated requests can't
+            // hop tenants by spoofing the X-Tenant-Id header.
+            new("tenant", string.IsNullOrEmpty(user.TenantId) ? "default" : user.TenantId),
         };
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 

@@ -232,28 +232,81 @@ class _HeroText extends StatelessWidget {
 }
 
 // ─── Ticker Band ─────────────────────────────────────────────────────────────
-class TickerBand extends StatelessWidget {
+// Continuously auto-scrolling marquee (left-drifting), like the HTML site's
+// CSS-animated ticker. Two copies of one "set" sit side by side; translating
+// left by exactly one set's width and then looping the animation makes the
+// seam invisible, so it reads as an endless scroll.
+class TickerBand extends StatefulWidget {
   const TickerBand({super.key});
 
+  @override
+  State<TickerBand> createState() => _TickerBandState();
+}
+
+class _TickerBandState extends State<TickerBand> with SingleTickerProviderStateMixin {
   static const _items = [
     'NO EXCUSES', 'JOIN TODAY', 'TRANSFORM', 'STRENGTH MEETS LUXURY',
     'TRAIN HARD', 'RESULTS GUARANTEED',
   ];
+  static const _itemStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: BhauColors.faint,
+    letterSpacing: 2,
+  );
+  static const _sepStyle = TextStyle(
+      color: BhauColors.cyan, fontSize: 14, fontWeight: FontWeight.w700);
+  static const _spacing = 24.0;
+  static const _pixelsPerSecond = 45.0;
 
-  Widget _buildRow() {
-    const itemStyle = TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w700,
-      color: BhauColors.faint,
-      letterSpacing: 2,
-    );
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 24,
+  late final AnimationController _ctrl;
+  late final double _setWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    _setWidth = _measureSetWidth();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: (_setWidth / _pixelsPerSecond * 1000).round()),
+    )..repeat();
+  }
+
+  double _measureSetWidth() {
+    double width = 0;
+    for (final item in _items) {
+      width += _textWidth(item, _itemStyle) + _spacing;
+      width += _textWidth('//', _sepStyle) + _spacing;
+    }
+    return width;
+  }
+
+  double _textWidth(String text, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    return painter.width;
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Widget _buildSet() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: _items.expand((t) => [
-        Text(t, style: itemStyle),
-        const Text('//', style: TextStyle(
-            color: BhauColors.cyan, fontSize: 14, fontWeight: FontWeight.w700)),
+        Padding(
+          padding: const EdgeInsets.only(right: _spacing),
+          child: Text(t, style: _itemStyle),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: _spacing),
+          child: Text('//', style: _sepStyle),
+        ),
       ]).toList(),
     );
   }
@@ -267,7 +320,28 @@ class TickerBand extends StatelessWidget {
           border: Border.symmetric(horizontal: BorderSide(color: BhauColors.line)),
           color: const Color(0x06FFFFFF),
         ),
-        child: Center(child: _buildRow()),
+        child: ClipRect(
+          child: SizedBox(
+            height: 20,
+            width: double.infinity,
+            child: AnimatedBuilder(
+              animation: _ctrl,
+              builder: (context, child) => OverflowBox(
+                maxWidth: double.infinity,
+                alignment: Alignment.centerLeft,
+                child: Transform.translate(
+                  offset: Offset(-_ctrl.value * _setWidth, 0),
+                  // Three copies back-to-back: enough overlap that even very
+                  // wide screens never see a gap while the seam scrolls by.
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [_buildSet(), _buildSet(), _buildSet()],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

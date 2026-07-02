@@ -24,7 +24,8 @@ namespace BhauFitnessApi.Controllers
             _db = db;
         }
 
-        private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        private string CurrentUserId =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!;
 
         [HttpGet]
         public async Task<ActionResult<List<NotificationDto>>> GetNotifications()

@@ -69,9 +69,16 @@ public class AuthController : ControllerBase
         if (user == null)
             return Unauthorized(new { error = "Invalid email/mobile number or password." });
 
+        if (await _userManager.IsLockedOutAsync(user))
+            return Unauthorized(new { error = "Too many failed attempts. Try again in a few minutes." });
+
         var passwordOk = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordOk)
+        {
+            await _userManager.AccessFailedAsync(user); // counts towards lockout
             return Unauthorized(new { error = "Invalid email or password." });
+        }
+        await _userManager.ResetAccessFailedCountAsync(user);
 
         var roles = await _userManager.GetRolesAsync(user);
         var (token, expires) = _tokenService.CreateToken(user, roles);

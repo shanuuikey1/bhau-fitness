@@ -37,6 +37,7 @@ public class UserService : IUserService
         {
             UserName = dto.Email,
             Email = dto.Email,
+            PhoneNumber = dto.Phone,
             FullName = dto.FullName,
             Goal = dto.Goal,
             MemberCode = memberCode,
@@ -55,9 +56,11 @@ public class UserService : IUserService
         // Loop to ensure uniqueness and prevent concurrency collisions
         do
         {
-            int num = random.Next(1000, 9999);
+            // 1000–99999 gives ~99k codes; checked across all tenants so codes
+            // stay globally unique.
+            int num = random.Next(1000, 100000);
             code = $"BHAU-{num}";
-            exists = await _db.Users.AnyAsync(u => u.MemberCode == code);
+            exists = await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.MemberCode == code);
         } while (exists);
 
         return code;

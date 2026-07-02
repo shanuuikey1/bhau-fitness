@@ -75,7 +75,8 @@ graph TD
 ### 🔒 6. Security Hardening
 *   **Argon2id Hashing:** High-security cryptographic password hashing.
 *   **JWT Authentication:** Secure token-based stateful authentication.
-*   **Rate Limiting:** Protects auth/payment routes using a fixed-window policy (10 requests/minute).
+*   **Rate Limiting:** Protects auth/payment routes using a per-client fixed-window policy (10 requests/minute per IP).
+*   **Login Lockout:** 5 failed password attempts lock the account for 5 minutes.
 *   **Health Checks:** Endpoint at `/api/health` verifying database and background service liveness.
 
 ---
@@ -148,7 +149,7 @@ flutter test
 
 ## 💾 Database Backups
 
-A [backup.sh](file:///c:/Users/shanu/Downloads/bhau-flutter-stack_1/bhau-flutter-stack/backup.sh) script is provided in the project root to automate database backups:
+A [backup.sh](backup.sh) script is provided in the project root to automate database backups:
 *   **Backup PostgreSQL (Production):** `./backup.sh backup-pg`
 *   **Restore PostgreSQL (Production):** `./backup.sh restore-pg [file]`
 *   **Backup SQL Server (Local Docker):** `./backup.sh backup-ms`

@@ -28,19 +28,20 @@ namespace BhauFitnessApi.Controllers
         {
             int totalMembers = await _db.Users.CountAsync();
             int activeMemberships = await _db.Memberships.CountAsync(m => m.Status == MembershipStatus.Active);
-            
-            // Total revenue is sum of plan price for all memberships
-            decimal totalRevenue = await _db.Memberships
-                .Include(m => m.Plan)
-                .SumAsync(m => m.Plan != null ? m.Plan.Price : 0);
+
+            // Revenue = money actually collected (paid payments), not the
+            // nominal plan price of memberships (which includes admin-granted
+            // freebies and would overstate earnings).
+            decimal totalRevenue = await _db.Payments
+                .Where(p => p.Status == PaymentStatus.Paid)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
             // Monthly revenue (current month)
             var now = DateTime.UtcNow;
-            var startOfMonth = new DateOnly(now.Year, now.Month, 1);
-            decimal monthlyRevenue = await _db.Memberships
-                .Include(m => m.Plan)
-                .Where(m => m.StartDate >= startOfMonth)
-                .SumAsync(m => m.Plan != null ? m.Plan.Price : 0);
+            var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            decimal monthlyRevenue = await _db.Payments
+                .Where(p => p.Status == PaymentStatus.Paid && p.CreatedAt >= startOfMonth)
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
             int newSignupsThisMonth = await _db.Users
                 .CountAsync(u => u.CreatedAt.Year == now.Year && u.CreatedAt.Month == now.Month);
@@ -73,23 +74,22 @@ namespace BhauFitnessApi.Controllers
         [HttpGet("revenue-trend")]
         public async Task<ActionResult<List<MonthlyRevenueDto>>> GetRevenueTrend()
         {
-            // Fetch memberships from the last 12 months, include plan
-            var oneYearAgo = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-12));
-            var memberships = await _db.Memberships
-                .Include(m => m.Plan)
-                .Where(m => m.StartDate >= oneYearAgo)
+            // Actual collected payments from the last 12 months.
+            var oneYearAgo = DateTime.UtcNow.AddMonths(-12);
+            var payments = await _db.Payments
+                .Where(p => p.Status == PaymentStatus.Paid && p.CreatedAt >= oneYearAgo)
                 .ToListAsync();
 
             // Group in-memory for simpler LINQ translation
-            var trend = memberships
-                .GroupBy(m => new { m.StartDate.Year, m.StartDate.Month })
+            var trend = payments
+                .GroupBy(p => new { p.CreatedAt.Year, p.CreatedAt.Month })
                 .OrderBy(g => g.Key.Year)
                 .ThenBy(g => g.Key.Month)
                 .Select(g => new MonthlyRevenueDto
                 {
                     Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
-                    Revenue = g.Sum(m => m.Plan != null ? m.Plan.Price : 0),
-                    NewMembers = g.Select(m => m.UserId).Distinct().Count()
+                    Revenue = g.Sum(p => p.Amount),
+                    NewMembers = g.Select(p => p.UserId).Distinct().Count()
                 })
                 .ToList();
 

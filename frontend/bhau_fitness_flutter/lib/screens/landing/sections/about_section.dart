@@ -129,8 +129,39 @@ class AboutSection extends StatelessWidget {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FadeSlideIn(
-                  child: const BhauImage(url: 'assets/images/about_1.png', height: 220, alignment: Alignment.topCenter),
+                // All three photos, side-by-side scroll strip — keeps every
+                // image visible on phone/tablet widths instead of dropping
+                // the 2nd and 3rd one like the old single-image layout did.
+                SizedBox(
+                  height: 220,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      FadeSlideIn(
+                        child: const SizedBox(
+                          width: 260,
+                          child: BhauImage(url: 'assets/images/about_1.png', height: 220, alignment: Alignment.topCenter),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 80),
+                        child: const SizedBox(
+                          width: 260,
+                          child: BhauImage(url: 'assets/images/about_2.jpg', height: 220, alignment: Alignment.center),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      FadeSlideIn(
+                        delay: const Duration(milliseconds: 160),
+                        child: const SizedBox(
+                          width: 260,
+                          child: BhauImage(url: 'assets/images/about_3.jpg', height: 220, alignment: Alignment.topCenter),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 26),
                 textColumn,

@@ -69,8 +69,13 @@ public class AdminController : ControllerBase
         var query = _db.Users.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search))
         {
+            // ToLower keeps the search case-insensitive on Postgres too (SQL
+            // Server's default collation already is; Postgres' is not).
+            var term = search.ToLower();
             query = query.Where(u =>
-                u.FullName.Contains(search) || u.Email!.Contains(search) || u.MemberCode.Contains(search));
+                u.FullName.ToLower().Contains(term)
+                || u.Email!.ToLower().Contains(term)
+                || u.MemberCode.ToLower().Contains(term));
         }
 
         var users = await query.OrderByDescending(u => u.CreatedAt).ToListAsync();

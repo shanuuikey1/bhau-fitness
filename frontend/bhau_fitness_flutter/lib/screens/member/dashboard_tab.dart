@@ -113,7 +113,8 @@ class _DashboardTabState extends State<DashboardTab> {
       // 1. Create Razorpay Order on Backend
       final orderData = await api.createPaymentOrder(plan.id);
       final orderId = orderData['orderId'] as String;
-      final amount = orderData['amount'] as double;
+      // num→double: JSON integers (e.g. 1499) decode as int, not double.
+      final amount = (orderData['amount'] as num).toDouble();
 
       if (!mounted) return;
 
@@ -195,10 +196,7 @@ class _DashboardTabState extends State<DashboardTab> {
     }
   }
 
-  // Guid generator helper for mock payment ids
-  static final _uuid = RegExp(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
-  // A simple class to simulate Guid in Dart
-  // Since we don't have Guid in Dart, we just generate a random string
+  // Unique-enough id for mock (sandbox) payment records.
   static String get _newGuid => DateTime.now().microsecondsSinceEpoch.toString();
 
   @override

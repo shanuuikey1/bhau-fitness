@@ -106,6 +106,9 @@ class AuthProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       errorMessage = e.message;
       return false;
+    } catch (_) {
+      errorMessage = 'Could not reach the server. Please try again.';
+      return false;
     } finally {
       isLoading = false;
       notifyListeners();
